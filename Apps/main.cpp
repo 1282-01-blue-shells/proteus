@@ -1,6 +1,6 @@
 #include <FEHLCD.h>
 
-int main() {
+int main(void) {
     LCD.Clear(BLACK);
     LCD.WriteLine("Hello, World!");
 }
