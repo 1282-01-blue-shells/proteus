@@ -34,9 +34,29 @@ REPO_NAME := fehproteusfirmware
 # The relative path to the local firmware repo directory.
 REPO_DIR := $(VENDOR_DIR)/$(REPO_NAME)
 
-# :: rel-path
-# The relative path to the target executable.
-TARGET := $(BUILD_DIR)/Proteus
+# :: text
+# The comma token.
+COMMA := ,
+# :: text
+# The empty string.
+EMPTY :=
+# :: text
+# The space token.
+SPACE := $(EMPTY) $(EMPTY)
+
+# APPS :: [text]
+# The names of applications to be built.
+ifdef APP
+APPS := $(subst $(COMMA),$(SPACE),$(APP))
+APP :=
+else
+APPS := $(notdir $(patsubst %/.,%,$(wildcard $(APPS_DIR)/*/.)))
+endif
+
+# :: [text]
+# The basenames of all products to be built.
+PRODUCTS := $(addprefix $(BUILD_DIR)/,$(APPS))
+PRODUCT_S19S := $(addsuffix .s19,$(PRODUCTS))
 
 # :: text
 # The prefix for the target platform toolchain.
@@ -62,7 +82,8 @@ OBJCOPY := $(TOOLCHAIN_PREFIX)objcopy
 # the given directory itself.
 #
 # This function is an implementation detail of `recurse_dirs`, which should be used instead.
-_recurse_dirs = $(foreach dir,$(dir $(wildcard $1*/.)),$(dir) $(call _recurse_dirs,$(dir)))
+_recurse_dirs = $(foreach dir,$(patsubst %/.,%,$(wildcard $1/*/.)), \
+                  $(dir) $(call _recurse_dirs,$(dir)))
 # :: rel-path -> [rel-path]
 # Returns a list of relative paths to the given directory and all nested subdirectories therein.
 #
@@ -72,11 +93,11 @@ recurse_dirs = $1 $(call _recurse_dirs,$1)
 # :: [rel-path]
 # The list of relative paths to all directories that may contain source files.
 SRC_DIRS := $(foreach dir,Drivers Libraries Startup,$(call recurse_dirs,$(REPO_DIR)/$(dir))) \
-            $(call recurse_dirs,$(APPS_DIR))
+            $(foreach app_dir,$(addprefix $(APPS_DIR)/,$(APPS)),$(call recurse_dirs,$(app_dir)))
 
 # :: [rel-path]
 # The list of relative paths to all source files.
-SRCS := $(foreach suffix,.cpp .c,$(wildcard $(addsuffix *$(suffix),$(SRC_DIRS)))) \
+SRCS := $(foreach suffix,.cpp .c,$(wildcard $(addsuffix /*$(suffix),$(SRC_DIRS)))) \
         $(REPO_DIR)/FEHProteus.cpp
 
 # :: text -> [rel-path]
@@ -138,15 +159,16 @@ CXXFLAGS := $(COMMON_FLAGS) -std=c++$(CXX_STD)
 # :: [text]
 # The list of arguments that should be passed to all C compiler invocations.
 CFLAGS := $(COMMON_FLAGS) -std=c$(C_STD)
-# :: [text]
-# The list of arguments that should be passed to all linker invocations.
-LDFLAGS := -u _printf_float \
-           -u _scanf_float \
-           -T$(REPO_DIR)/Linker/MK60DN512Z_flash.ld \
-           -Xlinker --gc-sections \
-           -Wl,-Map,$(TARGET).map \
-           -n \
-           -specs=nosys.specs
+# :: text -> [text]
+# Returns the list of arguments that should be passed to all linker invocations for the given build
+# product.
+ldflags = -u _printf_float \
+          -u _scanf_float \
+          -T$(REPO_DIR)/Linker/MK60DN512Z_flash.ld \
+          -Xlinker --gc-sections \
+          -Wl,-Map,$1.map \
+          -n \
+          -specs=nosys.specs
 
 # :: [text]
 # A shell command 'epilogue' that causes the output of the preceding command to be discarded.
@@ -198,21 +220,33 @@ else
 endif
 
 .PHONY: doc docs open-doc open-docs clean
+.SECONDEXPANSION:
 # This allows us to omit the `@` before shell commands in recipes.
 .SILENT:
 
-# Builds the target executable.
-all: $(TARGET).s19
+all: $(PRODUCTS)
 
-$(TARGET).s19: $(TARGET).elf
+$(PRODUCTS): $(PRODUCT_S19S)
+
+$(PRODUCT_S19S): %.s19: %.elf
 	echo [S19] $@
 	$(OBJCOPY) -O srec --srec-len=40 --srec-forceS3 $< $(@)
 
-$(TARGET).elf: $(OBJS)
+%.elf:
 	echo [ELF] $@
-	$(CXX) -o $@ $^ $(LDFLAGS)
+	$(CXX) -o $@ $^ $(call ldflags,$(basename $@))
 
-.SECONDEXPANSION:
+# :: text -> [text]
+# Returns a sequence of Makefile statements that define app-specific recipes for the given
+# application.
+define def_app_recipes
+	__$1_OBJS := $(filter-out \
+	               $(foreach app,$(filter-out $1,$(APPS)),$(BUILD_DIR)/$(APPS_DIR)/$(app)/%.o), \
+	               $(OBJS))
+    $(BUILD_DIR)/$1.elf: $$(__$1_OBJS)
+endef
+# Define all app-specific recipes.
+$(foreach app,$(APPS),$(eval $(call def_app_recipes,$(app))))
 
 # Compiles all C++ source files.
 $(CXX_OBJS): $(BUILD_DIR)/%.o: %.cpp | $$(@D)/.
