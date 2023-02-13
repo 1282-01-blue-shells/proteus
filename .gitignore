@@ -1,0 +1,6 @@
+/fehproteusfirmware
+/*.d
+/*.elf
+/*.map
+/*.o
+/*.s19
