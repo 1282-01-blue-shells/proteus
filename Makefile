@@ -38,21 +38,24 @@ REPO_DIR := $(VENDOR_DIR)/$(REPO_NAME)
 # The relative path to the target executable.
 TARGET := $(BUILD_DIR)/Proteus
 
+# :: text
+# The prefix for the target platform toolchain.
+TOOLCHAIN_PREFIX := arm-none-eabi-
 # :: exe
 # The name of the system Git executable.
 GIT := git
 # :: exe
 # The name of the system C++ compiler.
-CXX := arm-none-eabi-g++
+CXX := $(TOOLCHAIN_PREFIX)g++
 # :: exe
 # The name of the system C compiler.
-CC := arm-none-eabi-gcc
+CC := $(TOOLCHAIN_PREFIX)gcc
 # :: exe
 # The name of the system Doxygen executable.
 DOXYGEN := doxygen
 # :: exe
 # The name of the system `objcopy` executable.
-OBJCOPY := arm-none-eabi-objcopy
+OBJCOPY := $(TOOLCHAIN_PREFIX)objcopy
 
 # :: rel-path -> [rel-path]
 # Returns a list of relative paths to all nested subdirectories of the given directory, *excluding*
@@ -63,44 +66,35 @@ _recurse_dirs = $(foreach dir,$(dir $(wildcard $1*/.)),$(dir) $(call _recurse_di
 # :: rel-path -> [rel-path]
 # Returns a list of relative paths to the given directory and all nested subdirectories therein.
 #
-# Each returned path is prefixed with the path of the given directory. For example, if the given
-# directory is `./`, then every path will begin with `./`.
-#
-# Unlike `_recurse_dirs`, the returned list includes the given directory itself.
+# Each returned path is prefixed with the path of the given directory. Unlike `_recurse_dirs`, the
+# returned list includes the given directory itself.
 recurse_dirs = $1 $(call _recurse_dirs,$1)
 # :: [rel-path]
 # The list of relative paths to all directories that may contain source files.
-SRC_DIRS = $(foreach dir,Drivers Libraries Startup,$(call recurse_dirs,$(REPO_DIR)/$(dir))) \
-           $(call recurse_dirs,$(APPS_DIR))
+SRC_DIRS := $(foreach dir,Drivers Libraries Startup,$(call recurse_dirs,$(REPO_DIR)/$(dir))) \
+            $(call recurse_dirs,$(APPS_DIR))
 
 # :: [rel-path]
 # The list of relative paths to all source files.
-SRCS = $(patsubst ./%,%,$(foreach suffix,.cpp .c,$(wildcard $(addsuffix *$(suffix),$(SRC_DIRS))))) \
-       $(REPO_DIR)/FEHProteus.cpp
+SRCS := $(foreach suffix,.cpp .c,$(wildcard $(addsuffix *$(suffix),$(SRC_DIRS)))) \
+        $(REPO_DIR)/FEHProteus.cpp
 
 # :: text -> [rel-path]
-# Returns a list of relative paths to all object files compiled from source files with names ending
-# with the given suffix.
+# Returns a list of relative paths to all object files with source file names ending in the given
+# suffix.
 filter_objs = $(addprefix $(BUILD_DIR)/,$(patsubst %$1,%.o,$(filter %$1,$(SRCS))))
 # :: [rel-path]
 # The list of relative paths to all object files compiled from C++ source files.
-CXX_OBJS = $(call filter_objs,.cpp)
+CXX_OBJS := $(call filter_objs,.cpp)
 # :: [rel-path]
 # The list of relative paths to all object files compiled from C source files.
-C_OBJS = $(call filter_objs,.c)
+C_OBJS := $(call filter_objs,.c)
 # :: [rel-path]
 # The list of relative paths to all object files.
-OBJS = $(CXX_OBJS) $(C_OBJS)
-
-# :: [rel-path]
-# The list of relative paths to all dependency Makefiles generated from C++ source files.
-CXX_DEPS = $(CXX_OBJS:.o=.d)
-# :: [rel-path]
-# The list of relative paths to all dependency Makefiles generated from C source files.
-C_DEPS = $(C_OBJS:.o=.d)
+OBJS := $(CXX_OBJS) $(C_OBJS)
 # :: [rel-path]
 # The list of relative paths to all dependency Makefiles.
-DEPS = $(CXX_DEPS) $(C_DEPS)
+DEPS := $(OBJS:.o=d)
 
 # :: [rel-path]
 # The list of relative paths to directories containing C/C++ header files that should be marked as
@@ -251,5 +245,4 @@ open-doc open-docs:
 
 # Deletes the target executable and build directory.
 clean:
-	-$(call rm,$(TARGET))
 	-$(call rmdir,$(BUILD_DIR))
