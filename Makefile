@@ -126,9 +126,6 @@ INC_DIRS := $(VENDOR_DIR) \
 # :: [text]
 # The list of GCC `-I` arguments that should be passed to all compiler invocations.
 INCFLAGS := $(foreach dir,$(INC_DIRS),-I$(dir))
-# :: [text]
-# The list of GCC `-W` arguments that should be passed to all compiler invocations.
-WARNFLAGS := $(foreach name,all extra pedantic conversion float-equal no-psabi,-W$(name))
 # :: text
 # The revision of the C++ standard to compile C++ source files with.
 CXX_STD := 17
@@ -139,7 +136,6 @@ C_STD := 17
 # :: [text]
 # The list of arguments that should be passed to all compiler invocations.
 COMMON_FLAGS := $(INCFLAGS) \
-                $(WARNFLAGS) \
                 -Os \
                 -MMD \
                 -MP \
@@ -169,6 +165,12 @@ ldflags = -u _printf_float \
           -Wl,-Map,$1.map \
           -n \
           -specs=nosys.specs
+# :: text -> [text]
+# Returns the list of GCC `-W` arguments that should be passed to all compiler compilations for the
+# given object file.
+warnflags = $(if $(filter $(BUILD_DIR)/$(REPO_DIR)/%.o,$1), \
+              -w, \
+              $(foreach name,all extra pedantic conversion float-equal no-psabi,-W$(name)))
 
 # :: [text]
 # A shell command 'epilogue' that causes the output of the preceding command to be discarded.
@@ -251,12 +253,12 @@ $(foreach app,$(APPS),$(eval $(call def_app_recipes,$(app))))
 # Compiles all C++ source files.
 $(CXX_OBJS): $(BUILD_DIR)/%.o: %.cpp | $$(@D)/.
 	echo [CXX] $@
-	$(CXX) -o $@ -c $< $(CXXFLAGS)
+	$(CXX) -o $@ -c $< $(CXXFLAGS) $(call warnflags,$@)
 
 # Compiles all C source files.
 $(C_OBJS): $(BUILD_DIR)/%.o: %.c | $$(@D)/.
 	echo [CC ] $@
-	$(CC) -o $@ -c $< $(CFLAGS)
+	$(CC) -o $@ -c $< $(CFLAGS) $(call warnflags,$@)
 
 # Creates the build directory.
 $(BUILD_DIR)/.:
