@@ -1,20 +1,41 @@
-# Note: I have only tested this on Windows so it may fail on *nix-based platforms.
+# This is a drop-in replacement for the *Proteus_Project_Template* Makefile that also encompasses
+# the functionality of the Makefile provided by the *fehproteusfirmware* repository.
 #
-# Note: For the convenience of the reader, all variables have been annotated with a *quot*[1] `::`
-#       followed by a tag that categorizes the information contained within. The full list of
-#       variable tags used in this Makefile is given below:
-#		  - text
-#				A generic string that does not contain whitespace.
-#   	  - rel-path
-#				A type of `text` that represents a filesystem path relative to the current
-#				directory.
-#   	  - exe
-#				A type of `text` that represents the name of an executable program accessible from a
-#				shell.
-#  	      - A -> B
-#				A Makefile function that receives an argument of type `A` and returns type `B`.
-#         - [A]
-#				A list of type `A`.
+# This Makefile may offer some benefits compared to the standard FEH Makefiles. Features include:
+#
+# * support for co-existing source trees of multiple Proteus programs ("applications") that can be
+#   built individually or simultaneously
+# * suppressed warnings when compiling the Proteus firmware but extensive warnings when compiling
+#   applications
+# * Doxygen integration
+# * support for Windows and *nix platforms
+#
+# Pitfalls
+# --------
+#
+# Unlike the *Proteus_Project_Template* Makefile, the Proteus firmware repository is not
+# automatically cloned when you run `mingw32-make`. You can obtain it from
+# <https://code.osu.edu/fehelectronics/proteus_software/fehproteusfirmware.git>. By default, the
+# directory containing the firmware repository is expected to be located at
+# *Vendor/fehproteusfirmware*. See the `REPO_DIR` variable for details.
+#
+# Source-level Documentation
+# --------------------------
+#
+# For the convenience of the reader, many variables have been annotated with a *quot*[1] `::`
+# followed by a tag that categorizes the information contained within. The full list of variable
+# tags used in this Makefile is given below:
+#
+# * text
+#     A generic string that does not contain whitespace.
+# * rel-path
+#     A type of `text` that represents a filesystem path relative to the current directory.
+# * exe
+#     A type of `text` that represents the name of an executable program accessible from a shell.
+# * A -> B
+#     A Makefile function that receives an argument of type `A` and returns type `B`.
+# * [A]
+#     A list of type `A`.
 #
 # [1]: `::` is read *has type*.
 
@@ -25,7 +46,8 @@ APPS_DIR := Apps
 # The relative path to the directory in which object files and generated documentation are stored.
 BUILD_DIR := Build
 # :: rel-path
-# The relative path to the directory containing vendored repositories.
+# The relative path to the directory containing vendored repositories (e.g., the Proteus firmware
+# repo).
 VENDOR_DIR := Vendor
 # :: text
 # The name of the Proteus firmware repo.
@@ -45,7 +67,7 @@ EMPTY :=
 SPACE := $(EMPTY) $(EMPTY)
 
 # APPS :: [text]
-# The names of applications to be built.
+# The names of all applications to be built.
 ifdef APP
 APPS := $(subst $(COMMA),$(SPACE),$(APP))
 APP :=
