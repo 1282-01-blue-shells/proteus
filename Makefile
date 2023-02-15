@@ -1,14 +1,42 @@
-# This is a drop-in replacement for the *Proteus_Project_Template* Makefile that also encompasses
-# the functionality of the Makefile provided by the *fehproteusfirmware* repository.
+# The Proteus Makefile for Team D (name subject to change).
 #
-# This Makefile may offer some benefits compared to the standard FEH Makefiles. Features include:
+# This replaces both the *Proteus_Project_Template* and *fehproteusfirmware* Makefiles.
+# Features include:
 #
 # * support for co-existing source trees of multiple Proteus programs ("applications") that can be
 #   built individually or simultaneously
-# * suppressed warnings when compiling the Proteus firmware but extensive warnings when compiling
-#   applications
+# * suppressed warnings when compiling the Proteus firmware
 # * Doxygen integration
-# * support for Windows and *nix platforms
+#
+# Example Usage
+# -------------
+#
+# ```
+# # Build all applications.
+# make
+# ```
+#
+# ```
+# # Clean the build directory.
+# make clean
+# ```
+#
+# ```
+# # Build Doxygen documentation and then view it in a browser.
+# make doc open-doc
+# ```
+#
+# Applications
+# ------------
+#
+# To create a new Proteus application, make a new directory at `$(APPS_DIR)/<app-name>`, where
+# `$(APPS_DIR)` is *Apps* by default and `<app-name>` is the name of the appplication. This
+# directory will contain your *main.cpp* and any accompanying files. To selectively compile your
+# application, pass the argument `APPS=<app-name>` to Make.
+#
+# To selectively compile multiple applications simultaneously, pass a comma-separated string of
+# application names to Make with the `APPS` variable, e.g., `APPS=App1,App2`. Alternatively, to
+# compile all applications at once, call Make without any arguments.
 #
 # Pitfalls
 # --------
@@ -68,9 +96,8 @@ SPACE := $(EMPTY) $(EMPTY)
 
 # APPS :: [text]
 # The names of all applications to be built.
-ifdef APP
-APPS := $(subst $(COMMA),$(SPACE),$(APP))
-APP :=
+ifdef APPS
+APPS := $(subst $(COMMA),$(SPACE),$(APPS))
 else
 APPS := $(notdir $(patsubst %/.,%,$(wildcard $(APPS_DIR)/*/.)))
 endif
