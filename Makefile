@@ -71,6 +71,9 @@
 # The relative path to the directory containing Proteus applications.
 APPS_DIR := Apps
 # :: rel-path
+# The relative path to the directory containing Proteus application libraries.
+LIBS_DIR := Libs
+# :: rel-path
 # The relative path to the directory in which object files and generated documentation are stored.
 BUILD_DIR := Build
 # :: rel-path
@@ -101,6 +104,9 @@ APPS := $(subst $(COMMA),$(SPACE),$(APPS))
 else
 APPS := $(notdir $(patsubst %/.,%,$(wildcard $(APPS_DIR)/*/.)))
 endif
+
+-include $(foreach app,$(APPS),$(APPS_DIR)/$(app)/libs.mk)
+LIBS := $(sort $(foreach app,$(APPS),$($(app)_LIBS)))
 
 # :: [text]
 # The basenames of all products to be built.
@@ -142,11 +148,12 @@ recurse_dirs = $1 $(call _recurse_dirs,$1)
 # :: [rel-path]
 # The list of relative paths to all directories that may contain source files.
 SRC_DIRS := $(foreach dir,Drivers Libraries Startup,$(call recurse_dirs,$(REPO_DIR)/$(dir))) \
-            $(foreach app_dir,$(addprefix $(APPS_DIR)/,$(APPS)),$(call recurse_dirs,$(app_dir)))
+            $(foreach app,$(APPS),$(call recurse_dirs,$(APPS_DIR)/$(app)))
 
 # :: [rel-path]
 # The list of relative paths to all source files.
 SRCS := $(foreach suffix,.cpp .c,$(wildcard $(addsuffix /*$(suffix),$(SRC_DIRS)))) \
+        $(foreach lib,$(LIBS),$(LIBS_DIR)/$(lib).cpp) \
         $(REPO_DIR)/FEHProteus.cpp
 
 # :: text -> [rel-path]
@@ -169,7 +176,8 @@ DEPS := $(OBJS:.o=d)
 # :: [rel-path]
 # The list of relative paths to directories containing C/C++ header files that should be marked as
 # include directories with the GCC `-I` option.
-INC_DIRS := $(VENDOR_DIR) \
+INC_DIRS := $(LIBS_DIR) \
+            $(VENDOR_DIR) \
             $(REPO_DIR) \
             $(foreach dir,Drivers Libraries Startup,$(REPO_DIR)/$(dir))
 # :: [text]
@@ -291,9 +299,13 @@ $(PRODUCT_S19S): %.s19: %.elf
 # Returns a sequence of Makefile statements that define app-specific recipes for the given
 # application.
 define def_app_recipes
-	__$1_OBJS := $(filter-out \
-	               $(foreach app,$(filter-out $1,$(APPS)),$(BUILD_DIR)/$(APPS_DIR)/$(app)/%.o), \
-	               $(OBJS))
+    __$1_OBJS := $(filter-out \
+                   $(foreach app,$(filter-out $1,$(APPS)),$(BUILD_DIR)/$(APPS_DIR)/$(app)/%.o), \
+                   $(OBJS)) \
+                 $(filter-out \
+                   $(foreach lib,$(filter-out $1_LIBS,$(LIBS)),$(BUILD_DIR)/$(LIBS_DIR)/$(lib).o), \
+                   $(OBJS))
+
     $(BUILD_DIR)/$1.elf: $$(__$1_OBJS)
 endef
 # Define all app-specific recipes.
