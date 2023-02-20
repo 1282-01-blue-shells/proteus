@@ -228,7 +228,7 @@ warnflags = $(if $(filter $(BUILD_DIR)/$(REPO_DIR)/%.o,$1), \
               -w, \
               $(foreach name,all extra pedantic conversion float-equal no-psabi,-W$(name)))
 # :: text -> [text]
-# Returns the GCC argument regarding exception handling that should be passed to all compiler
+# Returns the GCC argument regarding exception handling that should be passed to all C++ compiler
 # compilations for the given object file.
 exceptflags = $(if $(filter $(BUILD_DIR)/$(REPO_DIR)/%.o,$1),-fno-exceptions,-fexceptions)
 
@@ -321,7 +321,7 @@ $(CXX_OBJS): $(BUILD_DIR)/%.o: %.cpp | $$(@D)/.
 # Compiles all C source files.
 $(C_OBJS): $(BUILD_DIR)/%.o: %.c | $$(@D)/.
 	echo [CC ] $@
-	$(CC) -o $@ -c $< $(CFLAGS) $(call warnflags,$@) $(call exceptflags,$@)
+	$(CC) -o $@ -c $< $(CFLAGS) $(call warnflags,$@)
 
 # Creates the build directory.
 $(BUILD_DIR)/.:
