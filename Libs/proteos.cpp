@@ -32,7 +32,7 @@ enum UIState {
     LookingAtIOVars,
     LookingAtIOFuncs,
     AccessingIOVars,
-    EditingVar,
+    // EditingVar,
     AccessingIOFuncs,
     RanFunc
 };
@@ -54,11 +54,11 @@ void drawFolderIcon(int x, int y);
 
 UIState uiState = UIState::Menu;
 
-char* ioVarNames[MAX_IO_VARIABLES];
+const char* ioVarNames[MAX_IO_VARIABLES];
 bool ioVarIsFP[MAX_IO_VARIABLES];
 void* ioVars[MAX_IO_VARIABLES];
 
-char* ioFuncNames[MAX_IO_FUNCTIONS];
+const char* ioFuncNames[MAX_IO_FUNCTIONS];
 void (*ioFuncs[MAX_IO_FUNCTIONS])();
 
 int currentIOVars = 0;
@@ -75,7 +75,7 @@ char debuggerText[HEIGHT_CHARS][WIDTH_CHARS + 1];
 
 // Function definitions
 
-void registerIOVariable(char* variableName, int* varPtr) {
+void registerIOVariable(const char* variableName, int* varPtr) {
     if (currentIOVars == MAX_IO_VARIABLES) return;
     ioVarNames[currentIOVars] = variableName;
     ioVarIsFP[currentIOVars] = false;
@@ -83,7 +83,7 @@ void registerIOVariable(char* variableName, int* varPtr) {
     currentIOVars++;
 }
 
-void registerIOVariable(char* variableName, float* varPtr) {
+void registerIOVariable(const char* variableName, float* varPtr) {
     if (currentIOVars == MAX_IO_VARIABLES) return;
     ioVarNames[currentIOVars] = variableName;
     ioVarIsFP[currentIOVars] = true;
@@ -91,7 +91,7 @@ void registerIOVariable(char* variableName, float* varPtr) {
     currentIOVars++;
 }
 
-void registerIOFunction(char* functionName, void (*funcPtr)()) {
+void registerIOFunction(const char* functionName, void (*funcPtr)()) {
     if (currentIOFuncs == MAX_IO_FUNCTIONS) return;
     ioFuncNames[currentIOFuncs] = functionName;
     ioFuncs[currentIOFuncs] = funcPtr;
@@ -182,7 +182,7 @@ void drawScreen() {
             LCD.WriteAt("Run", 62, 182);
             LCD.WriteAt("Debug", 210, 182);
             break;
-        
+
         case UIState::RanFunc:
             LCD.WriteAt("<", 4, 4);
             LCD.WriteAt(ioFuncNames[selectedIOFunc], 40, 4);
@@ -196,7 +196,7 @@ void drawScreen() {
             break;
 
     }
-    
+
 }
 
 void drawFolderIcon(int x, int y) {
@@ -227,7 +227,7 @@ void waitForInput() {
                 uiState = UIState::Menu;
             }
             for (int i = 0; i < currentIOVars; i++) {
-                if (y > 37 + 24*i && y < 61 + 24*i) {
+                if (y > (float)(37 + 24*i) && y < (float)(61 + 24*i)) {
                     selectedIOVar = i;
                     uiState = UIState::AccessingIOVars;
                 }
@@ -239,7 +239,7 @@ void waitForInput() {
                 uiState = UIState::Menu;
             }
             for (int i = 0; i < currentIOFuncs; i++) {
-                if (y > 37 + 24*i && y < 61 + 24*i) {
+                if (y > (float)(37 + 24*i) && y < (float)(61 + 24*i)) {
                     selectedIOFunc = i;
                     uiState = UIState::AccessingIOFuncs;
                 }
@@ -285,7 +285,7 @@ void editVariable() {
     } else {
         sprintf(text, "%i", *((int*) ioVars[selectedIOVar]));
     }
-    int cursorPos = strlen(text);
+    size_t cursorPos = strlen(text);
 
     // draw buttons
     LCD.SetFontColor(BACKGROUND_COLOR);
@@ -296,7 +296,7 @@ void editVariable() {
     LCD.WriteAt("1 2 3  <   >", 88, 180);
     LCD.WriteAt("- 0 .  Enter", 88, 204);
 
-    
+
 
     while (true) {
         LCD.SetFontColor(BACKGROUND_COLOR);
@@ -314,12 +314,12 @@ void editVariable() {
         if (x > 82 && x < 154 && y > 129 && y < 225) {
             // Numbers/Symbols
             memmove(text+cursorPos+1, text+cursorPos, strlen(text+cursorPos) + 1);
-            int bx = (x - 82) / 24;
-            int by = (y - 129) / 24;
+            int bx = (int)((x - 82) / 24);
+            int by = (int)((y - 129) / 24);
             if (by == 3) {
                 text[cursorPos] = (bx == 0 ? '-' : (bx == 1 ? '0' : '.'));
             } else {
-                text[cursorPos] = '1' + 3*(2-by) + bx;
+                text[cursorPos] = (char)('1' + 3*(2-by) + bx);
             }
             if (cursorPos < BUFFER_SIZE-1) cursorPos++;
         } else if (x > 166 && x < 190 && y > 177 && y < 201) {
@@ -357,7 +357,7 @@ void editVariable() {
                     return;
                 }
             }
-            
+
         } else if (x < 30 && y < 30) {
             return;
         }
@@ -493,7 +493,6 @@ void abortCheck() {
 }
 
 void sleepWithAbortCheck(float time) {
-    float x, y;
     double targetTime = TimeNow() + time;
     while (TimeNow() < targetTime) {
         abortCheck();
