@@ -105,8 +105,8 @@ else
 APPS := $(notdir $(patsubst %/.,%,$(wildcard $(APPS_DIR)/*/.)))
 endif
 
+LIBS := $(basename $(notdir $(wildcard $(LIBS_DIR)/*.cpp)))
 -include $(foreach app,$(APPS),$(APPS_DIR)/$(app)/libs.mk)
-LIBS := $(sort $(foreach app,$(APPS),$($(app)_LIBS)))
 
 # :: [text]
 # The basenames of all products to be built.
@@ -204,7 +204,6 @@ COMMON_FLAGS := $(INCFLAGS) \
                 -gstrict-dwarf \
                 -ffunction-sections \
                 -fdata-sections \
-                -fno-exceptions \
                 -fmessage-length=0
 # :: [text]
 # The list of arguments that should be passed to all C++ compiler invocations.
@@ -228,6 +227,10 @@ ldflags = -u _printf_float \
 warnflags = $(if $(filter $(BUILD_DIR)/$(REPO_DIR)/%.o,$1), \
               -w, \
               $(foreach name,all extra pedantic conversion float-equal no-psabi,-W$(name)))
+# :: text -> [text]
+# Returns the GCC argument regarding exception handling that should be passed to all compiler
+# compilations for the given object file.
+exceptflags = $(if $(filter $(BUILD_DIR)/$(REPO_DIR)/%.o,$1),-fno-exceptions,-fexceptions)
 
 # :: [text]
 # A shell command 'epilogue' that causes the output of the preceding command to be discarded.
@@ -300,10 +303,9 @@ $(PRODUCT_S19S): %.s19: %.elf
 # application.
 define def_app_recipes
     __$1_OBJS := $(filter-out \
-                   $(foreach app,$(filter-out $1,$(APPS)),$(BUILD_DIR)/$(APPS_DIR)/$(app)/%.o), \
-                   $(OBJS)) \
-                 $(filter-out \
-                   $(foreach lib,$(filter-out $1_LIBS,$(LIBS)),$(BUILD_DIR)/$(LIBS_DIR)/$(lib).o), \
+                   $(foreach app,$(filter-out $1,$(APPS)),$(BUILD_DIR)/$(APPS_DIR)/$(app)/%.o) \
+                   $(foreach lib,$(filter-out $($1_LIBS),$(LIBS)), \
+                     $(BUILD_DIR)/$(LIBS_DIR)/$(lib).o), \
                    $(OBJS))
 
     $(BUILD_DIR)/$1.elf: $$(__$1_OBJS)
@@ -314,12 +316,12 @@ $(foreach app,$(APPS),$(eval $(call def_app_recipes,$(app))))
 # Compiles all C++ source files.
 $(CXX_OBJS): $(BUILD_DIR)/%.o: %.cpp | $$(@D)/.
 	echo [CXX] $@
-	$(CXX) -o $@ -c $< $(CXXFLAGS) $(call warnflags,$@)
+	$(CXX) -o $@ -c $< $(CXXFLAGS) $(call warnflags,$@) $(call exceptflags,$@)
 
 # Compiles all C source files.
 $(C_OBJS): $(BUILD_DIR)/%.o: %.c | $$(@D)/.
 	echo [CC ] $@
-	$(CC) -o $@ -c $< $(CFLAGS) $(call warnflags,$@)
+	$(CC) -o $@ -c $< $(CFLAGS) $(call warnflags,$@) $(call exceptflags,$@)
 
 # Creates the build directory.
 $(BUILD_DIR)/.:
