@@ -4,25 +4,26 @@
 
 #include <cstdio>
 
+#include <assert.hpp>
 #include <FEHLCD.h>
 
-void draw_coords(const float x, const float y) {
-    LCD.Clear();
+void draw_coords(const int x, const int y) {
+    assert(x >= 0);
+    assert(y >= 0);
 
-    const int ix = static_cast<int>(x);
-    const int iy = static_cast<int>(y);
+    LCD.Clear();
 
     // The parentheses and comma are three characters, the coordinates make up three characters each
     // (for a total of six), and we need an extra byte for the NUL terminator.
     char buf[10];
-    snprintf(buf, sizeof(buf), "(%3u,%3u)", ix, iy);
-    LCD.WriteAt(buf, ix, iy);
+    snprintf(buf, sizeof(buf), "(%3hu,%3hu)", x, y);
+    LCD.WriteAt(buf, x, y);
 }
 
 int main(void) {
     LCD.Clear();
 
-    float x, y;
+    int x, y;
     // Wait until the LCD is touched.
     while (!LCD.Touch(&x, &y));
     // The LCD is being touched now.

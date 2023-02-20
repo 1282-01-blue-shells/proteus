@@ -1,0 +1,1 @@
+LcdTouchTest_LIBS := assert
