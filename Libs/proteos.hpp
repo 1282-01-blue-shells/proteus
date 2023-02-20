@@ -44,5 +44,9 @@ void abortCheck();
 //   to enable use of the Abort button.
 void sleepWithAbortCheck(float time);
 
+// Waits until the screen is pressed and released, and outputs the last position before the screen
+//   was released. x and y can be null if you do not need the position.
+void waitUntilPressAndRelease(float* x, float* y);
+
 
 #endif

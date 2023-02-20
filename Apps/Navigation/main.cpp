@@ -15,6 +15,8 @@ int main() {
     registerIOVariable("motorPower", &motorPower);
     registerIOVariable("time", &time);
     registerIOFunction("driveForward()", &driveForward);
+
+    openIOMenu();
 }
 
 void driveForward() {

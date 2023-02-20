@@ -208,10 +208,30 @@ void drawFolderIcon(int x, int y) {
     LCD.DrawVerticalLine(x+25, y+10, y+15);
 }
 
+void waitUntilPressAndRelease(float* x, float* y) {
+    if (x == NULL && y == NULL) {
+        float throwaway;
+        while (!LCD.Touch(&throwaway, &throwaway));
+        while (LCD.Touch(&throwaway, &throwaway));
+    } else {
+        float xRead, yRead;
+        float xActual, yActual;
+        // Wait until the screen is pressed down (read values do not matter)
+        while (!LCD.Touch(&xRead, &yRead));
+        // Wait until the screen is released, and copy the position while pressed
+        while (LCD.Touch(&xRead, &yRead)) {
+            xActual = xRead;
+            yActual = yRead;
+        }
+        // Last call will always give back (-1, -1), so we discard it
+        if (x != NULL) *x = xActual;
+        if (y != NULL) *y = yActual;
+    }
+}
+
 void waitForInput() {
     float x, y;
-    while (!LCD.Touch(&x, &y));
-    while (LCD.Touch(&x, &y));
+    waitUntilPressAndRelease(&x, &y);
 
     switch (uiState) {
         case Menu:
@@ -307,8 +327,7 @@ void editVariable() {
 
         // wait for input
         float x, y;
-        while (!LCD.Touch(&x, &y));
-        while (LCD.Touch(&x, &y));
+        waitUntilPressAndRelease(&x, &y);
 
         // process input
         if (x > 82 && x < 154 && y > 129 && y < 225) {
@@ -378,8 +397,7 @@ void startDebugger() {
     printLineF(12, "Touch to run function.");
 
     float x, y;
-    while (!LCD.Touch(&x, &y));
-    while (LCD.Touch(&x, &y));
+    waitUntilPressAndRelease(&x, &y);
 
     printLineF(12, "");
 
@@ -396,9 +414,11 @@ void startDebugger() {
         }
     }
 
+    // if pressed, wait until release
     while (LCD.Touch(&x, &y));
-    while (!LCD.Touch(&x, &y));
-    while (LCD.Touch(&x, &y));
+    
+    waitUntilPressAndRelease(NULL, NULL);
+
     inDebugger = false;
 }
 
@@ -453,8 +473,7 @@ void breakpoint() {
     float x, y;
     printLineF(12, "Touch to continue.");
 
-    while (!LCD.Touch(&x, &y));
-    while (LCD.Touch(&x, &y));
+    waitUntilPressAndRelease(&x, &y);
 
     printLineF(12, "");
 
@@ -465,12 +484,14 @@ void breakpoint() {
 
 bool breakpoint(float timeout) {
     if (!inDebugger) return false;
-    float x, y;
+    float xr, yr, x, y;
     double targetTime = TimeNow() + timeout;
     printLineF(12, "Touch or wait to continue.");
 
-    while (!LCD.Touch(&x, &y) && TimeNow() < targetTime);
-    while (LCD.Touch(&x, &y) && TimeNow() < targetTime);
+    while (!LCD.Touch(&xr, &yr) && TimeNow() < targetTime);
+    while (LCD.Touch(&xr, &yr) && TimeNow() < targetTime) {
+        x = xr; y = yr;
+    };
 
     printLineF(12, "");
 
