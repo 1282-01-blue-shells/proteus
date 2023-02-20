@@ -8,9 +8,9 @@
 
 // IO functions
 
-void registerIOVariable(char* variableName, int* varPtr);
-void registerIOVariable(char* variableName, float* varPtr);
-void registerIOFunction(char* functionName, void (*funcPtr)());
+void registerIOVariable(const char* variableName, int* varPtr);
+void registerIOVariable(const char* variableName, float* varPtr);
+void registerIOFunction(const char* functionName, void (*funcPtr)());
 
 void openIOMenu();
 
@@ -32,7 +32,7 @@ void clearDebugLog();
 // Prompts the user to press the screen to continue, and pauses execution until they do so.
 void breakpoint();
 
-// Pauses execution until the screen is tapped, or until a certain amount of time has passed. 
+// Pauses execution until the screen is tapped, or until a certain amount of time has passed.
 // Returns true if the breakpoint timed out.
 bool breakpoint(float timeout);
 

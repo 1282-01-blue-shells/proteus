@@ -9,11 +9,11 @@ void nestedCallExample();
 void largeFunction();
 
 int var1 = 23;
-float var2 = 5.6;
+float var2 = 5.6f;
 
 float squareInput = 2;
 
-int main() {
+int main(void) {
     registerIOVariable("var1", &var1);
     registerIOVariable("var2", &var2);
     registerIOVariable("squareInput", &squareInput);
@@ -21,7 +21,7 @@ int main() {
     registerIOFunction("stanley()", &stanley);
     registerIOFunction("testSquare()", &testSquare);
     registerIOFunction("nestedCallExample()", &nestedCallExample);
-    
+
     openIOMenu();
 }
 
@@ -75,7 +75,7 @@ void nestedCallExample() {
     double startTime = TimeNow();
 
     largeFunction();
-    
+
     printNextLineF("Elapsed time: %f", TimeNow() - startTime);
 }
 
