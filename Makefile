@@ -216,6 +216,9 @@ CFLAGS := $(COMMON_FLAGS) -std=c$(C_STD)
 # product.
 ldflags = -u _printf_float \
           -u _scanf_float \
+          -mcpu=cortex-m4 \
+          -mfloat-abi=soft \
+          -mthumb \
           -T$(REPO_DIR)/Linker/MK60DN512Z_flash.ld \
           -Xlinker --gc-sections \
           -Wl,-Map,$1.map \
