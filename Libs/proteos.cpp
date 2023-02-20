@@ -215,7 +215,7 @@ void waitUntilPressAndRelease(float* x, float* y) {
         while (LCD.Touch(&throwaway, &throwaway));
     } else {
         float xRead, yRead;
-        float xActual, yActual;
+        float xActual = -1, yActual = -1;
         // Wait until the screen is pressed down (read values do not matter)
         while (!LCD.Touch(&xRead, &yRead));
         // Wait until the screen is released, and copy the position while pressed
@@ -484,7 +484,7 @@ void breakpoint() {
 
 bool breakpoint(float timeout) {
     if (!inDebugger) return false;
-    float xr, yr, x, y;
+    float xr, yr, x = 0, y = 0;
     double targetTime = TimeNow() + timeout;
     printLineF(12, "Touch or wait to continue.");
 
