@@ -8,18 +8,29 @@
     const char *cond
 ) {
     LCD.Clear(RED);
+    LCD.SetFontColor(LCD.White);
     LCD.WriteLine("Assertion failed at");
 
     LCD.Write(' ');
     LCD.Write(file);
-    LCD.Write(':');
+    LCD.WriteLine(',');
+
+    LCD.Write(" line ");
     LCD.Write(line);
+    LCD.WriteLine(',');
+
     LCD.Write(" in ");
     LCD.Write(fn);
-    LCD.Write("():");
-    // Leave the third row blank and put the condition in the fourth row with a left-indentation of
-    // one.
-    LCD.WriteRC(cond, 3, 1);
+    LCD.WriteLine("():");
+    LCD.WriteLine("");
+
+    LCD.WriteLine("condition");
+    LCD.WriteLine("");
+    LCD.SetFontColor(LCD.Gray);
+    LCD.WriteLine(cond);
+
+    LCD.SetFontColor(LCD.White);
+    LCD.WriteRC("is false.", 13, 9);
 
     FEHBuzzer().Beep();
     // Spin.

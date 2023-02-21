@@ -1,5 +1,5 @@
-//! An application to display the X and Y coordinates of an LCD touch.
-//!
+//! \file
+//! \brief An application to display the X and Y coordinates of an LCD touch.
 //! \author Will Blankemeyer
 
 #include <cstdio>
@@ -12,6 +12,7 @@ void draw_coords(const int x, const int y) {
     assert(y >= 0);
 
     LCD.Clear();
+    LCD.DrawPixel(x, y);
 
     // The parentheses and comma are three characters, the coordinates make up three characters each
     // (for a total of six), and we need an extra byte for the NUL terminator.
