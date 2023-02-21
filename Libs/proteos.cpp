@@ -111,10 +111,10 @@ void drawScreen() {
 
     char buf[BUFFER_SIZE + 1];
 
+    LCD.WriteAt("--------------------------", 4, 16);
+
     LCD.WriteAt(Battery.Voltage(), 232, 4);
     LCD.WriteAt("V", 304, 4);
-
-    LCD.WriteAt("--------------------------", 4, 16);
 
     switch (uiState) {
         case UIState::Menu:
@@ -216,14 +216,17 @@ void waitUntilPressAndRelease(float* x, float* y) {
     } else {
         float xRead, yRead;
         float xActual = -1, yActual = -1;
-        // Wait until the screen is pressed down (read values do not matter)
-        while (!LCD.Touch(&xRead, &yRead));
-        // Wait until the screen is released, and copy the position while pressed
-        while (LCD.Touch(&xRead, &yRead)) {
-            xActual = xRead;
-            yActual = yRead;
+        while (xActual < 0 || yActual < 0) {
+            // Wait until the screen is pressed down (read values do not matter)
+            while (!LCD.Touch(&xRead, &yRead));
+            // Wait until the screen is released, and copy the position while pressed
+            while (LCD.Touch(&xRead, &yRead)) {
+                if (xRead >= 0 && yRead >= 0) {
+                    xActual = xRead;
+                    yActual = yRead;
+                }
+            }
         }
-        // Last call will always give back (-1, -1), so we discard it
         if (x != NULL) *x = xActual;
         if (y != NULL) *y = yActual;
     }
