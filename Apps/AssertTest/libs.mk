@@ -1,0 +1,1 @@
+AssertTest_LIBS := assert
