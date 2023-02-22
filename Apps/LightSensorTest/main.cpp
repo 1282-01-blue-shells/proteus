@@ -17,10 +17,12 @@ FEHMotor motorRight(FEHMotor::Motor1,9.);
 //DECLARING FUNCTIONS
 void StartAtLight();
 void TraveltoKiosk();
+void DisplaySensorReading();
 
 int main() {
     registerIOFunction("StartAtLight()", &StartAtLight);
     registerIOFunction("TraveltoKiosk()", &TraveltoKiosk);
+    registerIOFunction("DisplaySensorReading()", &DisplaySensorReading);
 
     openIOMenu(); // "runs the os" opens the interface to run functions
 }
@@ -45,6 +47,13 @@ void TraveltoKiosk(){
     motorLeft.SetPercent(MOTOR_STOP);
     motorRight.SetPercent(MOTOR_STOP);
     
+}
+
+void DisplaySensorReading() {
+    while (true) {
+        printLineF(2, "Sensor Value: %f", cds.Value());
+        sleepWithAbortCheck(0.5);
+    }
 }
 /*
 AnalogInputPin cds(FEHIO::P0_0);  //Configure CdS cell as an analog input
