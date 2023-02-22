@@ -1,3 +1,5 @@
+#include <proteos.hpp>
+
 #include <FEHLCD.h>
 #include <FEHIO.h>
 #include <FEHMotor.h>
@@ -17,27 +19,23 @@ void StartAtLight();
 void TraveltoKiosk();
 
 int main() {
-    LCD.Clear(BLACK);
-    void StartAtLight();
+    registerIOFunction("StartAtLight()", &StartAtLight);
+    registerIOFunction("TraveltoKiosk()", &TraveltoKiosk);
+
+    openIOMenu(); // "runs the os" opens the interface to run functions
 }
 
 //function to test whether robot responds to starting light
-void StartAtLight(){
-    LCD.Clear(BLACK);
-    LCD.WriteLine("Waiting for input..."); //start at back wall and wait for input
-    float x, y;
-    // wait until touch to start function
-    while (!LCD.Touch(&x, &y));
-    while (LCD.Touch(&x, &y));
-    LCD.Clear();
-    LCD.WriteLine("Received input, waiting for light");
+void StartAtLight() {
+    //start at back wall and wait for input
+    breakpoint();
+    printWrapF(1, "Received input, waiting for light");
 
     //wait for light
     while (cds.Value()>2.50); //if no light do nothing
     while (cds.Value()<2.50); //if light begin moving
-    LCD.Clear();
-    LCD.WriteLine("NOW AT LAST I SEEEE THE LIGHT");
-    void TraveltoKiosk();
+    printWrapF(3, "NOW AT LAST I SEEEE THE LIGHT");
+    //void TraveltoKiosk();
 }
 
 //function to allow robot to travel to kiosk (right now testing if react to light turning on)
