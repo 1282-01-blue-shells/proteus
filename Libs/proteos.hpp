@@ -46,6 +46,9 @@ void printAppendF(int row, const char* format, ...);
 // Writes the specified text on the first empty line, and returns the line number that was written to.
 int printNextLineF(const char* format, ...);
 
+// Writes text on the specified line, with any overflow wrapping to the next lines.
+void printWrapF(int startRow, const char* format, ...);
+
 // Erases everything that has been printed to the screen.
 void clearDebugLog();
 

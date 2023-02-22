@@ -18,6 +18,7 @@
 
 #define DEBUGGER_BACKGROUND_COLOR 0x000000
 #define DEBUGGER_FOREGROUND_COLOR 0x00E0F0
+#define DEBUGGER_ERROR_COLOR 0xFF0000
 
 #define WIDTH_CHARS 26
 #define HEIGHT_CHARS 13
@@ -424,13 +425,17 @@ void startDebugger() {
             ioFuncs[selectedIOFunc]();
             printLineF(12, "Completed. Touch to close.");
         } catch (AbortException* e) {
+            LCD.SetFontColor(DEBUGGER_ERROR_COLOR);
             printLineF(12, "Aborted. Touch to close.");
+            LCD.SetFontColor(DEBUGGER_FOREGROUND_COLOR);
             delete e;
         } catch (AssertionException* e) {
+            LCD.SetFontColor(DEBUGGER_ERROR_COLOR);
             printLineF(9, "Assertion Failed at");
             printLineF(10, "line %i in %s", e->lineNumber, e->functionName);
             printLineF(11, "%s", e->message);
             printLineF(12, "Touch to close.");
+            LCD.SetFontColor(DEBUGGER_FOREGROUND_COLOR);
             delete e;
         }
 
@@ -487,6 +492,30 @@ int printNextLineF(const char* format, ...) {
     }
     va_end(valist);
     return row;
+}
+
+void printWrapF(int startRow, const char* format, ...) {
+    if (!inDebugger || startRow < 0 || startRow >= HEIGHT_CHARS) return;
+
+    char buf[WIDTH_CHARS*HEIGHT_CHARS + 1];
+    va_list valist;
+    va_start(valist, format);
+
+    vsnprintf(buf, WIDTH_CHARS*HEIGHT_CHARS, format, valist);
+
+    char* bufPos = buf;
+    int currentRow = startRow;
+    while (currentRow < HEIGHT_CHARS && strlen(bufPos) > 0) {
+        strncpy(debuggerText[currentRow], bufPos, WIDTH_CHARS);
+        LCD.SetFontColor(DEBUGGER_BACKGROUND_COLOR);
+        LCD.FillRectangle(0, currentRow*17, 320, 17);
+        LCD.SetFontColor(DEBUGGER_FOREGROUND_COLOR);
+        LCD.WriteRC(debuggerText[currentRow], currentRow, 0);
+        bufPos += strlen(debuggerText[currentRow]);
+        currentRow++;
+    }
+    
+    va_end(valist);
 }
 
 void clearDebugLog() {
