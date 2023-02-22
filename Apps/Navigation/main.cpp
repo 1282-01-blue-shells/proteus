@@ -12,6 +12,8 @@ int motorPower = 25;
 float time = 8.0;
 
 int main() {
+    registerMotor(&leftMotor, 0);
+    registerMotor(&rightMotor, 1);
     registerIOVariable("motorPower", &motorPower);
     registerIOVariable("time", &time);
     registerIOFunction("driveForward()", &driveForward);
@@ -22,7 +24,7 @@ int main() {
 void driveForward() {
     leftMotor.SetPercent(motorPower);
     rightMotor.SetPercent(motorPower);
-    Sleep(time);
+    sleepWithAbortCheck(time);
     leftMotor.Stop();
     rightMotor.Stop();
 }

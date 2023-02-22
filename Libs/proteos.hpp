@@ -1,6 +1,7 @@
 #ifndef PROTEOS_HPP
 #define PROTEOS_HPP
 
+#include <FEHMotor.h>
 
 #define MAX_IO_VARIABLES 8
 #define MAX_IO_FUNCTIONS 8
@@ -11,6 +12,7 @@
 void registerIOVariable(const char* variableName, int* varPtr);
 void registerIOVariable(const char* variableName, float* varPtr);
 void registerIOFunction(const char* functionName, void (*funcPtr)());
+void registerMotor(FEHMotor* motor, int portNumber);
 
 void openIOMenu();
 

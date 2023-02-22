@@ -22,8 +22,9 @@
 #define WIDTH_CHARS 26
 #define HEIGHT_CHARS 13
 
-
 #define BUFFER_SIZE 30
+
+#define NUM_MOTOR_PORTS 4
 
 // Classes
 
@@ -32,7 +33,6 @@ enum UIState {
     LookingAtIOVars,
     LookingAtIOFuncs,
     AccessingIOVars,
-    // EditingVar,
     AccessingIOFuncs,
     RanFunc
 };
@@ -60,6 +60,8 @@ void* ioVars[MAX_IO_VARIABLES];
 
 const char* ioFuncNames[MAX_IO_FUNCTIONS];
 void (*ioFuncs[MAX_IO_FUNCTIONS])();
+
+FEHMotor* motors[NUM_MOTOR_PORTS] = {0};
 
 int currentIOVars = 0;
 int currentIOFuncs = 0;
@@ -96,6 +98,10 @@ void registerIOFunction(const char* functionName, void (*funcPtr)()) {
     ioFuncNames[currentIOFuncs] = functionName;
     ioFuncs[currentIOFuncs] = funcPtr;
     currentIOFuncs++;
+}
+
+void registerMotor(FEHMotor* motor, int portNumber) {
+    motors[portNumber] = motor;
 }
 
 void openIOMenu() {
@@ -414,6 +420,12 @@ void startDebugger() {
         } catch (AbortException* e) {
             printLineF(12, "Aborted. Touch to close.");
             delete e;
+        }
+
+        for (int i = 0; i < NUM_MOTOR_PORTS; i++) {
+            if (motors[i] != NULL) {
+                motors[i]->Stop();
+            }
         }
     }
 
