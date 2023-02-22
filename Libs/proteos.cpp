@@ -77,6 +77,12 @@ char debuggerText[HEIGHT_CHARS][WIDTH_CHARS + 1];
 
 // Function definitions
 
+AssertionException::AssertionException(const char* functionName, int lineNumber, const char* message) {
+    this->functionName = functionName;
+    this->lineNumber = lineNumber;
+    this->message = message;
+}
+
 void registerIOVariable(const char* variableName, int* varPtr) {
     if (currentIOVars == MAX_IO_VARIABLES) return;
     ioVarNames[currentIOVars] = variableName;
@@ -419,6 +425,12 @@ void startDebugger() {
             printLineF(12, "Completed. Touch to close.");
         } catch (AbortException* e) {
             printLineF(12, "Aborted. Touch to close.");
+            delete e;
+        } catch (AssertionException* e) {
+            printLineF(9, "Assertion Failed at");
+            printLineF(10, "line %i in %s", e->lineNumber, e->functionName);
+            printLineF(11, "%s", e->message);
+            printLineF(12, "Touch to close.");
             delete e;
         }
 

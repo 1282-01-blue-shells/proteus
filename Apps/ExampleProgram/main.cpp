@@ -7,6 +7,7 @@ float square(float x);
 void testSquare();
 void nestedCallExample();
 void largeFunction();
+void itsJoever();
 
 int var1 = 23;
 float var2 = 5.6f;
@@ -21,6 +22,7 @@ int main(void) {
     registerIOFunction("stanley()", &stanley);
     registerIOFunction("testSquare()", &testSquare);
     registerIOFunction("nestedCallExample()", &nestedCallExample);
+    registerIOFunction("itsJoever()", &itsJoever);
 
     openIOMenu();
 }
@@ -84,4 +86,14 @@ void largeFunction() {
         printNextLineF("%i/5", i+1);
         sleepWithAbortCheck(1.0);
     }
+}
+
+
+// Example of an assertion
+void itsJoever() {
+    printLineF(1, "hm! omoshiroi...");
+    printLineF(3, "..demo!");
+    printLineF(4, "joewari da!");
+
+    assertTrue(false, "[Biden Blast]!");
 }

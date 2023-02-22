@@ -7,6 +7,24 @@
 #define MAX_IO_FUNCTIONS 8
 
 
+// Classes
+
+struct AssertionException : public std::exception {
+    const char* functionName;
+    int lineNumber;
+    const char* message;
+    AssertionException(const char* functionName, int lineNumber, const char* message);
+};
+
+
+// Macros
+
+#define assertTrue(condition, message) \
+    if (!(condition)) { \
+        throw new AssertionException(__func__, __LINE__, message); \
+    }
+
+
 // IO functions
 
 void registerIOVariable(const char* variableName, int* varPtr);
