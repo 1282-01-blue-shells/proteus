@@ -36,7 +36,7 @@ void StartAtLight() {
     //wait for light
     while (cds.Value()>2.50); //if no light do nothing
     printWrapF(3, "NOW AT LAST I SEEEE THE LIGHT");
-    void TraveltoKiosk();
+    TraveltoKiosk();
 }
 
 //function to allow robot to travel to kiosk (right now testing if react to light turning on)
