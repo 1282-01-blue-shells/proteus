@@ -7,7 +7,7 @@
 #include <assert.hpp>
 #include <FEHLCD.h>
 
-void draw_coords(const int x, const int y) {
+void drawCoords(const int x, const int y) {
     assert(x >= 0);
     assert(y >= 0);
 
@@ -28,11 +28,11 @@ int main(void) {
     // Wait until the LCD is touched.
     while (!LCD.Touch(&x, &y));
     // The LCD is being touched now.
-    draw_coords(x, y);
+    drawCoords(x, y);
 
     while (true) {
         if (LCD.Touch(&x, &y)) {
-            draw_coords(x, y);
+            drawCoords(x, y);
         }
     }
 }
