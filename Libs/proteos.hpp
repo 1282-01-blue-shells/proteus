@@ -2,6 +2,7 @@
 #define PROTEOS_HPP
 
 #include <FEHMotor.h>
+#include <exception>
 
 #define MAX_IO_VARIABLES 8
 #define MAX_IO_FUNCTIONS 8
