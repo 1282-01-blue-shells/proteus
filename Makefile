@@ -117,9 +117,6 @@ PRODUCT_S19S := $(addsuffix .s19,$(PRODUCTS))
 # The prefix for the target platform toolchain.
 TOOLCHAIN_PREFIX := arm-none-eabi-
 # :: exe
-# The name of the system Git executable.
-GIT := git
-# :: exe
 # The name of the system C++ compiler.
 CXX := $(TOOLCHAIN_PREFIX)g++
 # :: exe
