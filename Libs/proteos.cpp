@@ -17,7 +17,7 @@
 #define FOREGROUND_COLOR 0xD0C0FF
 
 #define DEBUGGER_BACKGROUND_COLOR 0x000000
-#define DEBUGGER_FOREGROUND_COLOR 0x00E0F0
+#define DEBUGGER_DEFAULT_FONT_COLOR 0x00E0F0
 #define DEBUGGER_ERROR_COLOR 0xFF0000
 
 #define WIDTH_CHARS 26
@@ -74,6 +74,8 @@ int selectedIOFunc = 0;
 bool inDebugger = false;
 bool functionAborted = false;
 char debuggerText[HEIGHT_CHARS][WIDTH_CHARS + 1];
+
+int debuggerFontColor = DEBUGGER_DEFAULT_FONT_COLOR;
 
 
 // Function definitions
@@ -404,10 +406,11 @@ void startDebugger() {
     functionAborted = false;
     inDebugger = true;
 
+    setDebuggerFontColor();
     clearDebugLog();
 
     LCD.Clear(DEBUGGER_BACKGROUND_COLOR);
-    LCD.SetFontColor(DEBUGGER_FOREGROUND_COLOR);
+    LCD.SetFontColor(debuggerFontColor);
     LCD.WriteRC("Abort", 13, 21);
     printLineF(0, "Debugger: %s", ioFuncNames[selectedIOFunc]);
     printLineF(12, "Touch to run function.");
@@ -425,17 +428,15 @@ void startDebugger() {
             ioFuncs[selectedIOFunc]();
             printLineF(12, "Completed. Touch to close.");
         } catch (AbortException* e) {
-            LCD.SetFontColor(DEBUGGER_ERROR_COLOR);
+            setDebuggerFontColor(DEBUGGER_ERROR_COLOR);
             printLineF(12, "Aborted. Touch to close.");
-            LCD.SetFontColor(DEBUGGER_FOREGROUND_COLOR);
             delete e;
         } catch (AssertionException* e) {
-            LCD.SetFontColor(DEBUGGER_ERROR_COLOR);
+            setDebuggerFontColor(DEBUGGER_ERROR_COLOR);
             printLineF(9, "Assertion Failed at");
             printLineF(10, "line %i in %s", e->lineNumber, e->functionName);
             printLineF(11, "%s", e->message);
             printLineF(12, "Touch to close.");
-            LCD.SetFontColor(DEBUGGER_FOREGROUND_COLOR);
             delete e;
         }
 
@@ -462,7 +463,7 @@ void printLineF(int row, const char* format, ...) {
     vsnprintf(debuggerText[row], WIDTH_CHARS, format, valist);
     LCD.SetFontColor(DEBUGGER_BACKGROUND_COLOR);
     LCD.FillRectangle(0, row*17, 320, 17);
-    LCD.SetFontColor(DEBUGGER_FOREGROUND_COLOR);
+    LCD.SetFontColor(debuggerFontColor);
     LCD.WriteRC(debuggerText[row], row, 0);
     va_end(valist);
 }
@@ -471,6 +472,7 @@ void printAppendF(int row, const char* format, ...) {
     if (!inDebugger || row < 0 || row >= HEIGHT_CHARS) return;
     va_list valist;
     va_start(valist, format);
+    LCD.SetFontColor(debuggerFontColor);
     int currentLength = strlen(debuggerText[row]);
     vsnprintf(debuggerText[row] + currentLength, WIDTH_CHARS - currentLength, format, valist);
     LCD.WriteRC(debuggerText[row], row, 0);
@@ -481,6 +483,7 @@ int printNextLineF(const char* format, ...) {
     if (!inDebugger) return -1;
     va_list valist;
     va_start(valist, format);
+    LCD.SetFontColor(debuggerFontColor);
     int row = -1;
     for (int i = 0; i < HEIGHT_CHARS; i++) {
         if (strlen(debuggerText[i]) == 0) {
@@ -509,13 +512,21 @@ void printWrapF(int startRow, const char* format, ...) {
         strncpy(debuggerText[currentRow], bufPos, WIDTH_CHARS);
         LCD.SetFontColor(DEBUGGER_BACKGROUND_COLOR);
         LCD.FillRectangle(0, currentRow*17, 320, 17);
-        LCD.SetFontColor(DEBUGGER_FOREGROUND_COLOR);
+        LCD.SetFontColor(debuggerFontColor);
         LCD.WriteRC(debuggerText[currentRow], currentRow, 0);
         bufPos += strlen(debuggerText[currentRow]);
         currentRow++;
     }
     
     va_end(valist);
+}
+
+void setDebuggerFontColor(int color) {
+    debuggerFontColor = color;
+}
+
+void setDebuggerFontColor() {
+    debuggerFontColor = DEBUGGER_DEFAULT_FONT_COLOR;
 }
 
 void clearDebugLog() {

@@ -50,6 +50,12 @@ int printNextLineF(const char* format, ...);
 // Writes text on the specified line, with any overflow wrapping to the next lines.
 void printWrapF(int startRow, const char* format, ...);
 
+// Change the font color used by the debugger
+void setDebuggerFontColor(int color);
+
+// Reset the font color used by the debugger
+void setDebuggerFontColor();
+
 // Erases everything that has been printed to the screen.
 void clearDebugLog();
 
