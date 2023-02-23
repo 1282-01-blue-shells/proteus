@@ -15,28 +15,37 @@ import shutil
 import subprocess
 
 def sd_card_dir() -> Path:
+    label = "FEHSD"
+
     os = platform.system()
     if os == "Windows":
         wmic_output = [line for line in subprocess.getoutput(
             "WMIC VOLUME GET DriveLetter,Label /VALUE"
         ).splitlines() if len(line) > 0]
         try:
-            label_index = wmic_output.index("Label=FEHSD")
+            label_index = wmic_output.index(f"Label={label}")
         except:
             fail("SD card is not inserted")
         # The `DriveLetter=...` line immediately precedes the `Label=...` one.
         drive_letter = wmic_output[label_index - 1].removeprefix("DriveLetter=")
         return Path(f"{drive_letter}\\")
     elif os == "Darwin":
-        return Path("/Volumes/FEHSD")
+        return Path(f"/Volumes/{label}")
     elif os == "Linux":
-        return Path("/media/FEHSD")
+        return Path(f"/media/{label}")
     else:
         fail("unknown platform")
 
 def main():
     if len(sys.argv) == 1:
-        sys.stderr.write("Usage: deploy.py <app-name>\n")
+        print("OVERVIEW: A tool to install an application to the Proteus SD card.")
+        print()
+        print("<app-name> is the name of application to be installed. This is equivalent to the")
+        print("basename of the directory containing the application.")
+        print("If the SD card is not inserted, the script will exit with an error message.")
+        print("Otherwise, the .S19 file corresponding to the application is copied to the SD card.")
+        print()
+        print("USAGE: deploy.py <app-name>")
         return
 
     app = sys.argv[1]
