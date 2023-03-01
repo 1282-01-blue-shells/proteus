@@ -7,6 +7,7 @@
 #define MOTOR_POWER 40
 
 void goToKiosk();
+void motorTest();
 
 FEHMotor leftMotor(FEHMotor::Motor0, 9);
 FEHMotor rightMotor(FEHMotor::Motor1, 9);
@@ -26,6 +27,7 @@ int main() {
     registerMotor(&leftMotor, 0);
     registerMotor(&rightMotor, 1);
     registerIOFunction("goToKiosk()", &goToKiosk);
+    registerIOFunction("motorTest()", &motorTest);
 
     openIOMenu();
 }
@@ -52,4 +54,22 @@ void goToKiosk() {
 
     stopDriving();
     printLineF(6, "done");
+}
+
+void motorTest() {
+    printLineF(1, "left motor forward...");
+    leftMotor.SetPercent(40);
+    sleepWithAbortCheck(3);
+    printLineF(2, "left motor backward...");
+    leftMotor.SetPercent(-40);
+    sleepWithAbortCheck(3);
+    leftMotor.Stop();
+    printLineF(3, "right motor forward...");
+    rightMotor.SetPercent(40);
+    sleepWithAbortCheck(3);
+    printLineF(4, "right motor backward...");
+    rightMotor.SetPercent(-40);
+    sleepWithAbortCheck(3);
+    rightMotor.Stop();
+    printLineF(5, "done.");
 }

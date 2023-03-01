@@ -1,1 +1,1 @@
-Navigation_LIBS := proteos
+Navigation_LIBS := proteos navigation

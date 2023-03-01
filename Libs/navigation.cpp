@@ -17,28 +17,28 @@
 #define WEIGHT_D -1.0f
 
 
-FEHMotor* leftMotor;
-FEHMotor* rightMotor;
-DigitalEncoder* leftEncoder;
-DigitalEncoder* rightEncoder;
+FEHMotor* leftMotor_;
+FEHMotor* rightMotor_;
+DigitalEncoder* leftEncoder_;
+DigitalEncoder* rightEncoder_;
 
 void displayError() {
     setDebuggerFontColor(0xFF0000);
     printLineF(12, "Motors/Encoders not set");
 }
 
-void setMotors(FEHMotor* leftMotor_, FEHMotor* rightMotor_) {
-    leftMotor = leftMotor_;
-    rightMotor = rightMotor_;
+void setMotors(FEHMotor* leftMotor__, FEHMotor* rightMotor__) {
+    leftMotor_ = leftMotor__;
+    rightMotor_ = rightMotor__;
 }
 
-void setEncoders(DigitalEncoder* leftEncoder_, DigitalEncoder* rightEncoder_) {
-    leftEncoder = leftEncoder_;
-    rightEncoder = rightEncoder_;
+void setEncoders(DigitalEncoder* leftEncoder__, DigitalEncoder* rightEncoder__) {
+    leftEncoder_ = leftEncoder__;
+    rightEncoder_ = rightEncoder__;
 }
 
 bool hasNullRef() {
-    return (leftMotor == NULL || rightMotor == NULL || leftEncoder == NULL || rightEncoder == NULL);
+    return (leftMotor_ == NULL || rightMotor_ == NULL || leftEncoder_ == NULL || rightEncoder_ == NULL);
 }
 
 void turn(float degrees, float maxPower) {
@@ -63,17 +63,17 @@ void turn(float degrees, float maxPower) {
 
     int counts = (int) (degrees * ENCODER_COUNTS_PER_DEGREE);
 
-    leftEncoder->ResetCounts();
-    rightEncoder->ResetCounts();
-    leftMotor->SetPercent(leftPower);
-    rightMotor->SetPercent(rightPower);
+    leftEncoder_->ResetCounts();
+    rightEncoder_->ResetCounts();
+    leftMotor_->SetPercent(leftPower);
+    rightMotor_->SetPercent(rightPower);
 
-    while ((leftEncoder->Counts() + rightEncoder->Counts()) / 2 < counts) {
+    while ((leftEncoder_->Counts() + rightEncoder_->Counts()) / 2 < counts) {
         abortCheck();
     }
 
-    leftMotor->Stop();
-    rightMotor->Stop();
+    leftMotor_->Stop();
+    rightMotor_->Stop();
 }
 
 void turnWithSlowdown(float degrees, float maxPower) {
@@ -100,24 +100,24 @@ void turnWithSlowdown(float degrees, float maxPower) {
     int counts = (int) (degrees * ENCODER_COUNTS_PER_DEGREE);
     int slowDownThreshold = counts - (int)(maxPower * SLOW_DOWN_THRESHOLD_COEFFICIENT);
 
-    leftEncoder->ResetCounts();
-    rightEncoder->ResetCounts();
-    leftMotor->SetPercent(leftPower);
-    rightMotor->SetPercent(rightPower);
+    leftEncoder_->ResetCounts();
+    rightEncoder_->ResetCounts();
+    leftMotor_->SetPercent(leftPower);
+    rightMotor_->SetPercent(rightPower);
 
-    while ((leftEncoder->Counts() + rightEncoder->Counts()) / 2 < slowDownThreshold) {
+    while ((leftEncoder_->Counts() + rightEncoder_->Counts()) / 2 < slowDownThreshold) {
         abortCheck();
     }
 
-    leftMotor->SetPercent(leftPower * SLOW_DOWN_COEFFICIENT);
-    rightMotor->SetPercent(rightPower * SLOW_DOWN_COEFFICIENT);
+    leftMotor_->SetPercent(leftPower * SLOW_DOWN_COEFFICIENT);
+    rightMotor_->SetPercent(rightPower * SLOW_DOWN_COEFFICIENT);
 
-    while ((leftEncoder->Counts() + rightEncoder->Counts()) / 2 < counts) {
+    while ((leftEncoder_->Counts() + rightEncoder_->Counts()) / 2 < counts) {
         abortCheck();
     }
 
-    leftMotor->Stop();
-    rightMotor->Stop();
+    leftMotor_->Stop();
+    rightMotor_->Stop();
 }
 
 void drive(float distance, float maxPower) {
@@ -136,17 +136,17 @@ void drive(float distance, float maxPower) {
 
     int counts = (int) (distance * ENCODER_COUNTS_PER_INCH);
 
-    leftEncoder->ResetCounts();
-    rightEncoder->ResetCounts();
-    leftMotor->SetPercent(leftPower);
-    rightMotor->SetPercent(rightPower);
+    leftEncoder_->ResetCounts();
+    rightEncoder_->ResetCounts();
+    leftMotor_->SetPercent(leftPower);
+    rightMotor_->SetPercent(rightPower);
 
-    while ((leftEncoder->Counts() + rightEncoder->Counts()) / 2 < counts) {
+    while ((leftEncoder_->Counts() + rightEncoder_->Counts()) / 2 < counts) {
         abortCheck();
     }
 
-    leftMotor->Stop();
-    rightMotor->Stop();
+    leftMotor_->Stop();
+    rightMotor_->Stop();
 }
 
 void startDriving(float maxPower) {
@@ -163,8 +163,8 @@ void startDriving(float maxPower) {
         leftPower /= MOTOR_POWER_RATIO;
     }
 
-    leftMotor->SetPercent(leftPower);
-    rightMotor->SetPercent(rightPower);
+    leftMotor_->SetPercent(leftPower);
+    rightMotor_->SetPercent(rightPower);
 }
 
 void stopDriving() {
@@ -173,8 +173,8 @@ void stopDriving() {
         return;
     }
 
-    leftMotor->Stop();
-    rightMotor->Stop();
+    leftMotor_->Stop();
+    rightMotor_->Stop();
 }
 
 void driveWithSlowdown(float distance, float maxPower) {
@@ -194,30 +194,30 @@ void driveWithSlowdown(float distance, float maxPower) {
     int counts = (int) (distance * ENCODER_COUNTS_PER_INCH);
     int slowDownThreshold = counts - (int)(maxPower * SLOW_DOWN_THRESHOLD_COEFFICIENT);
 
-    leftEncoder->ResetCounts();
-    rightEncoder->ResetCounts();
-    leftMotor->SetPercent(leftPower);
-    rightMotor->SetPercent(rightPower);
+    leftEncoder_->ResetCounts();
+    rightEncoder_->ResetCounts();
+    leftMotor_->SetPercent(leftPower);
+    rightMotor_->SetPercent(rightPower);
 
-    while ((leftEncoder->Counts() + rightEncoder->Counts()) / 2 < slowDownThreshold) {
+    while ((leftEncoder_->Counts() + rightEncoder_->Counts()) / 2 < slowDownThreshold) {
         abortCheck();
     }
 
-    leftMotor->SetPercent(leftPower * SLOW_DOWN_COEFFICIENT);
-    rightMotor->SetPercent(rightPower * SLOW_DOWN_COEFFICIENT);
+    leftMotor_->SetPercent(leftPower * SLOW_DOWN_COEFFICIENT);
+    rightMotor_->SetPercent(rightPower * SLOW_DOWN_COEFFICIENT);
 
-    while ((leftEncoder->Counts() + rightEncoder->Counts()) / 2 < counts) {
+    while ((leftEncoder_->Counts() + rightEncoder_->Counts()) / 2 < counts) {
         abortCheck();
     }
 
-    leftMotor->Stop();
-    rightMotor->Stop();
+    leftMotor_->Stop();
+    rightMotor_->Stop();
 }
 
 
 // WIP
 
-int encoderDiff(DigitalEncoder* encoder, int* counts) {
+/* int encoderDiff(DigitalEncoder* encoder, int* counts) {
     int newCounts = encoder->Counts();
     int difference = newCounts - *counts;
     *counts = newCounts;
@@ -225,7 +225,7 @@ int encoderDiff(DigitalEncoder* encoder, int* counts) {
 }
 
 void updatePos(int leftCounts, int rightCounts, float* x, float* y, float* a) {
-    float aDiff = (rightCounts - leftCounts) / ENCODER_COUNTS_PER_DEGREE * (M_PI / 180);
+    float aDiff = (rightCounts - leftCounts) / ENCODER_COUNTS_PER_DEGREE * (3.14159265358979323846 / 180);
 
     float relXDiff, relYDiff;
 
@@ -249,7 +249,7 @@ void updatePos(int leftCounts, int rightCounts, float* x, float* y, float* a) {
     *x += relXDiff * cos(*a) - relYDiff * sin(*a);
     *y += relYDiff * cos(*a) + relXDiff * sin(*a);
     *a += aDiff;
-}
+} */
 
 /* void driveWithCorrection(float distance, float maxPower) {
     if (hasNullRef()) return;
