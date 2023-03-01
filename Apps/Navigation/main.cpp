@@ -8,6 +8,8 @@
 
 void goToKiosk();
 void motorTest();
+void waitForLight();
+void runSection();
 
 FEHMotor leftMotor(FEHMotor::Motor0, 9);
 FEHMotor rightMotor(FEHMotor::Motor1, 9);
@@ -15,8 +17,10 @@ FEHMotor rightMotor(FEHMotor::Motor1, 9);
 DigitalEncoder leftEncoder(FEHIO::P1_0);
 DigitalEncoder rightEncoder(FEHIO::P1_1);
 
-DigitalInputPin leftSwitch(FEHIO::P0_0);
-DigitalInputPin rightSwitch(FEHIO::P0_1);
+/* DigitalInputPin leftSwitch(FEHIO::P0_0);
+DigitalInputPin rightSwitch(FEHIO::P0_1); */
+
+AnalogInputPin lightSensor(FEHIO::P0_0);
 
 int motorPower = 25;
 float time = 8.0;
@@ -26,12 +30,19 @@ int main() {
     setEncoders(&leftEncoder, &rightEncoder);
     registerMotor(&leftMotor, 0);
     registerMotor(&rightMotor, 1);
-    registerIOFunction("goToKiosk()", &goToKiosk);
     registerIOFunction("motorTest()", &motorTest);
+    registerIOFunction("waitForLight()", &waitForLight);
+    registerIOFunction("goToKiosk()", &goToKiosk);
+    registerIOFunction("runSection()", &runSection);
 
     openIOMenu();
 }
 
+
+void runSection() {
+    waitForLight();
+    goToKiosk();
+}
 
 void goToKiosk() {
     printLineF(1, "going forward");
@@ -48,9 +59,10 @@ void goToKiosk() {
 
     printLineF(5, "going forward to kiosk");
     startDriving(MOTOR_POWER);
-    while (leftSwitch.Value() && rightSwitch.Value()) {
+    /* while (leftSwitch.Value() && rightSwitch.Value()) {
         abortCheck();
-    }
+    } */
+    Sleep(3.f);
 
     stopDriving();
     printLineF(6, "done");
@@ -72,4 +84,12 @@ void motorTest() {
     sleepWithAbortCheck(3);
     rightMotor.Stop();
     printLineF(5, "done.");
+}
+
+void waitForLight() {
+    printWrapF(8, "Received input, waiting for light");
+
+    //wait for light
+    while (lightSensor.Value()>2.50); //if no light do nothing
+    printWrapF(10, "NOW AT LAST I SEEEE THE LIGHT");
 }
