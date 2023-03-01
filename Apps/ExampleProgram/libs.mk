@@ -1,0 +1,1 @@
+ExampleProgram_LIBS := proteos

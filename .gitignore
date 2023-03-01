@@ -1,6 +1,2 @@
-/fehproteusfirmware
-/*.d
-/*.elf
-/*.map
-/*.o
-/*.s19
+/.vscode/settings.json
+/Build

@@ -1,0 +1,1 @@
+LightSensorTest_LIBS := proteos

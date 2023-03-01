@@ -1,0 +1,2 @@
+- Build with Ctrl+Shift+B
+- open terminal and enter "python deploy.py [app name]" for your app

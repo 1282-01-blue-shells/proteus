@@ -1,0 +1,52 @@
+{
+    "version": "2.0.0",
+    "command": "make",
+    "windows": { "command": "mingw32-make" },
+    "args": ["-j", "4"],
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Build all apps",
+            "args": [
+                "all"
+            ],
+            "group": "build",
+            "presentation": {
+                "clear": true
+            },
+        },
+        {
+            "type": "process",
+            "label": "Clean build directory",
+            "args": [
+                "clean"
+            ],
+            "presentation": {
+                "reveal": "never",
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "Generate documentation",
+            "args": [
+                "docs"
+            ],
+            "presentation": {
+                "clear": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "process",
+            "label": "View generated documentation in browser",
+            "args": [
+                "open-docs"
+            ],
+            "presentation": {
+                "reveal": "never",
+            },
+            "problemMatcher": []
+        }
+    ]
+}
