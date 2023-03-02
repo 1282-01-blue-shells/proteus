@@ -10,6 +10,7 @@ void goToKiosk();
 void motorTest();
 void waitForLight();
 void runSection();
+void encoderTest();
 
 FEHMotor leftMotor(FEHMotor::Motor0, 9);
 FEHMotor rightMotor(FEHMotor::Motor1, 9);
@@ -20,7 +21,7 @@ DigitalEncoder rightEncoder(FEHIO::P1_1);
 /* DigitalInputPin leftSwitch(FEHIO::P0_0);
 DigitalInputPin rightSwitch(FEHIO::P0_1); */
 
-AnalogInputPin lightSensor(FEHIO::P0_0);
+AnalogInputPin lightSensor(FEHIO::P0_7);
 
 int motorPower = 25;
 float time = 8.0;
@@ -31,6 +32,7 @@ int main() {
     registerMotor(&leftMotor, 0);
     registerMotor(&rightMotor, 1);
     registerIOFunction("motorTest()", &motorTest);
+    registerIOFunction("encoderTest()", &encoderTest);
     registerIOFunction("waitForLight()", &waitForLight);
     registerIOFunction("goToKiosk()", &goToKiosk);
     registerIOFunction("runSection()", &runSection);
@@ -87,9 +89,51 @@ void motorTest() {
 }
 
 void waitForLight() {
-    printWrapF(8, "Received input, waiting for light");
+    printWrapF(9, "Waiting for light...");
 
     //wait for light
     while (lightSensor.Value()>2.50); //if no light do nothing
+    setDebuggerFontColor(0xFFFF00);
     printWrapF(10, "NOW AT LAST I SEEEE THE LIGHT");
+    setDebuggerFontColor();
+}
+
+void encoderTest() {
+    printLineF(1, "left motor forward...");
+    leftEncoder.ResetCounts();
+    leftMotor.SetPercent(MOTOR_POWER);
+    double startTime = TimeNow();
+    while (TimeNow() < startTime + 5) {
+        printLineF(2, "encoder reading: %i", leftEncoder.Counts());
+        sleepWithAbortCheck(0.01f);
+    }
+
+    printLineF(3, "left motor backward...");
+    leftEncoder.ResetCounts();
+    leftMotor.SetPercent(-MOTOR_POWER);
+    startTime = TimeNow();
+    while (TimeNow() < startTime + 5) {
+        printLineF(4, "encoder reading: %i", leftEncoder.Counts());
+        sleepWithAbortCheck(0.01f);
+    }
+    leftMotor.Stop();
+
+    printLineF(5, "right motor forward...");
+    rightEncoder.ResetCounts();
+    rightMotor.SetPercent(MOTOR_POWER);
+    startTime = TimeNow();
+    while (TimeNow() < startTime + 5) {
+        printLineF(6, "encoder reading: %i", rightEncoder.Counts());
+        sleepWithAbortCheck(0.01f);
+    }
+
+    printLineF(7, "right motor backward...");
+    rightEncoder.ResetCounts();
+    rightMotor.SetPercent(-MOTOR_POWER);
+    startTime = TimeNow();
+    while (TimeNow() < startTime + 5) {
+        printLineF(8, "encoder reading: %i", rightEncoder.Counts());
+        sleepWithAbortCheck(0.01f);
+    }
+    rightMotor.Stop();
 }
