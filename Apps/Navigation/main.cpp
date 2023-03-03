@@ -6,10 +6,12 @@
 
 #define MOTOR_POWER 40
 
-void goToKiosk();
-void motorTest();
-void waitForLight();
 void runSection();
+void waitForLight();
+void navigate();
+void goToKiosk();
+void backDownTheRamp();
+void motorTest();
 void encoderTest();
 
 FEHMotor leftMotor(FEHMotor::Motor0, 9);
@@ -23,18 +25,20 @@ DigitalInputPin rightSwitch(FEHIO::P0_1); */
 
 AnalogInputPin lightSensor(FEHIO::P0_7);
 
-int motorPower = 25;
-float time = 8.0;
+float distanceToBackUp = 8.f;
 
 int main() {
     setMotors(&leftMotor, &rightMotor);
     setEncoders(&leftEncoder, &rightEncoder);
     registerMotor(&leftMotor, 0);
     registerMotor(&rightMotor, 1);
+    registerIOVariable("distanceToBackUp", &distanceToBackUp);
     registerIOFunction("motorTest()", &motorTest);
     registerIOFunction("encoderTest()", &encoderTest);
     registerIOFunction("waitForLight()", &waitForLight);
     registerIOFunction("goToKiosk()", &goToKiosk);
+    registerIOFunction("backDownTheRamp()", &backDownTheRamp);
+    registerIOFunction("navigate()", &navigate);
     registerIOFunction("runSection()", &runSection);
 
     openIOMenu();
@@ -43,31 +47,60 @@ int main() {
 
 void runSection() {
     waitForLight();
+    navigate();
+}
+
+void waitForLight() {
+    printWrapF(9, "Waiting for light...");
+
+    //wait for light
+    while (lightSensor.Value()>2.50); //if no light do nothing
+    setDebuggerFontColor(0xFFFF00);
+    printWrapF(10, "NOW AT LAST I SEEEE THE LIGHT");
+    setDebuggerFontColor();
+}
+
+void navigate() {
     goToKiosk();
+    backDownTheRamp();
 }
 
 void goToKiosk() {
-    printLineF(1, "going forward");
-    drive(36, MOTOR_POWER);
+    printNextLineF("starting");
+    driveWithSlowdown(2, MOTOR_POWER);
+    turnWithSlowdown(-20, MOTOR_POWER);
+    driveWithSlowdown(2, MOTOR_POWER);
+    turnWithSlowdown(-20, MOTOR_POWER);
 
-    printLineF(2, "turning left");
-    turn(-45, MOTOR_POWER);
+    printNextLineF("going forward");
+    driveWithSlowdown(30, MOTOR_POWER);
 
-    printLineF(3, "going forward");
-    drive(12, MOTOR_POWER);
+    printNextLineF("turning left");
+    turnWithSlowdown(-45, MOTOR_POWER);
 
-    printLineF(4, "turning right");
-    turn(45, MOTOR_POWER);
+    printNextLineF("going forward");
+    driveWithSlowdown(12, MOTOR_POWER);
 
-    printLineF(5, "going forward to kiosk");
+    printNextLineF("turning right");
+    turnWithSlowdown(45, MOTOR_POWER);
+
+    printNextLineF("going forward to kiosk");
     startDriving(MOTOR_POWER);
     /* while (leftSwitch.Value() && rightSwitch.Value()) {
         abortCheck();
     } */
-    Sleep(3.f);
+    Sleep(2.f);
 
     stopDriving();
-    printLineF(6, "done");
+    printNextLineF("done");
+}
+
+void backDownTheRamp() {
+    driveWithSlowdown(distanceToBackUp, -MOTOR_POWER);
+    turnWithSlowdown(-45, MOTOR_POWER);
+    driveWithSlowdown(12, -MOTOR_POWER);
+    turnWithSlowdown(45, MOTOR_POWER);
+    driveWithSlowdown(24, -MOTOR_POWER);
 }
 
 void motorTest() {
@@ -86,16 +119,6 @@ void motorTest() {
     sleepWithAbortCheck(3);
     rightMotor.Stop();
     printLineF(5, "done.");
-}
-
-void waitForLight() {
-    printWrapF(9, "Waiting for light...");
-
-    //wait for light
-    while (lightSensor.Value()>2.50); //if no light do nothing
-    setDebuggerFontColor(0xFFFF00);
-    printWrapF(10, "NOW AT LAST I SEEEE THE LIGHT");
-    setDebuggerFontColor();
 }
 
 void encoderTest() {

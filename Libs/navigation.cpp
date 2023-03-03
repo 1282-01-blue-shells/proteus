@@ -9,6 +9,8 @@
 #define ENCODER_COUNTS_PER_DEGREE 2.8f
 #define ENCODER_COUNTS_PER_INCH 40.489f
 
+#define DELAY 0.2f
+
 #define SLOW_DOWN_THRESHOLD_COEFFICIENT 2.0f
 #define SLOW_DOWN_COEFFICIENT 0.5f
 
@@ -42,6 +44,8 @@ void turn(float degrees, float maxPower) {
         displayError();
         return;
     }
+    sleepWithAbortCheck(DELAY);
+
     float leftPower = maxPower, rightPower = maxPower;
 
     if (MOTOR_POWER_RATIO < 1) {
@@ -77,6 +81,7 @@ void turnWithSlowdown(float degrees, float maxPower) {
         displayError();
         return;
     }
+    sleepWithAbortCheck(DELAY);
 
     float leftPower = maxPower, rightPower = maxPower;
 
@@ -121,6 +126,7 @@ void drive(float distance, float maxPower) {
         displayError();
         return;
     }
+    sleepWithAbortCheck(DELAY);
 
     float leftPower = maxPower, rightPower = maxPower;
 
@@ -150,6 +156,7 @@ void startDriving(float maxPower) {
         displayError();
         return;
     }
+    sleepWithAbortCheck(DELAY);
 
     float leftPower = maxPower, rightPower = maxPower;
 
@@ -178,6 +185,7 @@ void driveWithSlowdown(float distance, float maxPower) {
         displayError();
         return;
     }
+    sleepWithAbortCheck(DELAY);
 
     float leftPower = maxPower, rightPower = maxPower;
 
