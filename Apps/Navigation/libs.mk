@@ -1,1 +1,1 @@
-Navigation_LIBS := proteos debugger navigation
+Navigation_LIBS := proteos navigation
