@@ -30,10 +30,6 @@ public:
     // Opens the menu to allow the user to access variables and functions.
     static void run();
 
-    // Waits until the screen is pressed and released, and outputs the last position before the screen
-    //   was released. x and y can be null if you do not need the position.
-    static void waitUntilPressAndRelease(float* x, float* y);
-
 
 private:
 

@@ -6,7 +6,6 @@
 #include "stdarg.h"
 #include "exception"
 
-#include "proteos.hpp"
 #include "navigation.hpp"
 
 #include "FEHLCD.h"
@@ -45,7 +44,7 @@ void Debugger::debugFunction(const char* functionName, void (*funcPtr)()) {
     printLine(12, "Touch to run function.");
 
     float x, y;
-    ProteOS::waitUntilPressAndRelease(&x, &y);
+    waitUntilPressAndRelease(&x, &y);
 
     printLine(12, "");
 
@@ -71,7 +70,7 @@ void Debugger::debugFunction(const char* functionName, void (*funcPtr)()) {
     // if pressed, wait until release
     while (LCD.Touch(&x, &y));
     
-    ProteOS::waitUntilPressAndRelease(NULL, NULL);
+    waitUntilPressAndRelease(NULL, NULL);
 
     inDebugger = false;
 }
@@ -161,7 +160,7 @@ void Debugger::breakpoint() {
     float x, y;
     printLine(12, "Touch to continue.");
 
-    ProteOS::waitUntilPressAndRelease(&x, &y);
+    waitUntilPressAndRelease(&x, &y);
 
     printLine(12, "");
 
@@ -205,5 +204,29 @@ void Debugger::sleep(float time) {
     double targetTime = TimeNow() + time;
     while (TimeNow() < targetTime) {
         abortCheck();
+    }
+}
+
+void Debugger::waitUntilPressAndRelease(float* x, float* y) {
+    if (x == NULL && y == NULL) {
+        float throwaway;
+        while (!LCD.Touch(&throwaway, &throwaway));
+        while (LCD.Touch(&throwaway, &throwaway));
+    } else {
+        float xRead, yRead;
+        float xActual = -1, yActual = -1;
+        while (xActual < 0 || yActual < 0) {
+            // Wait until the screen is pressed down (read values do not matter)
+            while (!LCD.Touch(&xRead, &yRead));
+            // Wait until the screen is released, and copy the position while pressed
+            while (LCD.Touch(&xRead, &yRead)) {
+                if (xRead >= 0 && yRead >= 0) {
+                    xActual = xRead;
+                    yActual = yRead;
+                }
+            }
+        }
+        if (x != NULL) *x = xActual;
+        if (y != NULL) *y = yActual;
     }
 }

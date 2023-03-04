@@ -2,7 +2,7 @@
 
 #include "math.h"
 
-#include "proteos.hpp"
+#include "debugger.hpp"
 
 
 // Static variable definitions
@@ -33,7 +33,7 @@ void Motors::calculateMotorPower(float* leftPower, float* rightPower) {
 void Motors::doMovementWithSlowdown(float leftPower, float rightPower, int distanceInCounts) {
 
     // The motors will slow down when there are this many counts until the end
-    int slowdownDistance = distanceInCounts - (int)(maxPower * SLOWDOWN_THRESHOLD_COEFFICIENT);
+    float slowdownDistance = (float)distanceInCounts - (maxPower * SLOWDOWN_THRESHOLD_COEFFICIENT);
 
     lEncoder.ResetCounts();
     rEncoder.ResetCounts();
@@ -44,7 +44,7 @@ void Motors::doMovementWithSlowdown(float leftPower, float rightPower, int dista
     for (int i = 0; i < slowdownStages; i++) {
 
         // Wait until the appropriate distance
-        while ((lEncoder.Counts() + rEncoder.Counts()) / 2 < distanceInCounts - slowdownDistance) {
+        while ((lEncoder.Counts() + rEncoder.Counts()) / 2 < distanceInCounts - (int)slowdownDistance) {
             Debugger::abortCheck();
         }
 

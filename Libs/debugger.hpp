@@ -75,6 +75,10 @@ public:
     //   FEHUtility's Sleep() to enable use of the Abort button.
     static void sleep(float time);
 
+    // Waits until the screen is pressed and released, and outputs the last position before the screen
+    //   was released. x and y can be null if you do not need the position.
+    static void waitUntilPressAndRelease(float* x, float* y);
+
     // Runs a function in the debugger. Used internally
     static void debugFunction(const char* functionName, void (*funcPtr)());
 

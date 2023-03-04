@@ -1,5 +1,7 @@
 #include "proteos.hpp"
 
+#include "debugger.hpp"
+
 #include "string.h"
 #include "stdio.h"
 
@@ -170,33 +172,9 @@ void ProteOS::drawFolderIcon(int x, int y) {
     LCD.DrawVerticalLine(x+25, y+10, y+15);
 }
 
-void ProteOS::waitUntilPressAndRelease(float* x, float* y) {
-    if (x == NULL && y == NULL) {
-        float throwaway;
-        while (!LCD.Touch(&throwaway, &throwaway));
-        while (LCD.Touch(&throwaway, &throwaway));
-    } else {
-        float xRead, yRead;
-        float xActual = -1, yActual = -1;
-        while (xActual < 0 || yActual < 0) {
-            // Wait until the screen is pressed down (read values do not matter)
-            while (!LCD.Touch(&xRead, &yRead));
-            // Wait until the screen is released, and copy the position while pressed
-            while (LCD.Touch(&xRead, &yRead)) {
-                if (xRead >= 0 && yRead >= 0) {
-                    xActual = xRead;
-                    yActual = yRead;
-                }
-            }
-        }
-        if (x != NULL) *x = xActual;
-        if (y != NULL) *y = yActual;
-    }
-}
-
 void ProteOS::waitForInput() {
     float x, y;
-    waitUntilPressAndRelease(&x, &y);
+    Debugger::waitUntilPressAndRelease(&x, &y);
 
     switch (uiState) {
         case Menu:
@@ -287,7 +265,7 @@ void ProteOS::editVariable() {
 
         // wait for input
         float x, y;
-        waitUntilPressAndRelease(&x, &y);
+        Debugger::waitUntilPressAndRelease(&x, &y);
 
         // process input
         if (x > 82 && x < 154 && y > 129 && y < 225) {
