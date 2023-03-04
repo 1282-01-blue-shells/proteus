@@ -15,6 +15,15 @@ int ProteOS::foregroundColor = 0xD0C0FF;
 ProteOS::UIState ProteOS::uiState = UIState::Menu;
 int ProteOS::currentVars = 0;
 int ProteOS::currentFuncs = 0;
+int ProteOS::selectedVar = 0;
+int ProteOS::selectedFunc = 0;
+
+const char* ProteOS::varNames[MAX_VARIABLES] = {0};
+ProteOS::VariableType ProteOS::varTypes[MAX_VARIABLES];
+void* ProteOS::varPtrs[MAX_VARIABLES] = {0};
+
+const char* ProteOS::funcNames[MAX_FUNCTIONS] = {0};
+void (*ProteOS::funcPtrs[MAX_FUNCTIONS])() = {0};
 
 // Function definitions
 
@@ -306,29 +315,31 @@ void ProteOS::editVariable() {
             }
         } else if (x > 166 && x < 238 && y > 201 && y < 225) {
             // Enter
-
+            int outputI;
+            float outputF;
+            int success;
             switch (varTypes[selectedVar]) {
                 case Bool:
-                    int output = 0;
-                    int success = sscanf(text, "%i", &output);
+                    outputI = 0;
+                    success = sscanf(text, "%i", &outputI);
                     if (success) {
-                        *((bool*) varPtrs[selectedVar]) = (bool) output;
+                        *((bool*) varPtrs[selectedVar]) = (bool) outputI;
                         return;
                     }
                     break;
                 case Int:
-                    int output = 0;
-                    int success = sscanf(text, "%i", &output);
+                    outputI = 0;
+                    success = sscanf(text, "%i", &outputI);
                     if (success) {
-                        *((int*) varPtrs[selectedVar]) = output;
+                        *((int*) varPtrs[selectedVar]) = outputI;
                         return;
                     }
                     break;
                 case Float:
-                    float output = 0;
-                    int success = sscanf(text, "%f", &output);
+                    outputF = 0;
+                    success = sscanf(text, "%f", &outputF);
                     if (success) {
-                        *((float*) varPtrs[selectedVar]) = output;
+                        *((float*) varPtrs[selectedVar]) = outputF;
                         return;
                     } else {
                         LCD.WriteAt("Parse error", 160, 80);

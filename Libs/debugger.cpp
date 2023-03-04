@@ -21,6 +21,8 @@ int Debugger::errorColor = 0xFF0000;
 bool Debugger::inDebugger = false;
 int Debugger::debuggerFontColor = Debugger::defaultFontColor;
 
+char Debugger::debuggerText[HEIGHT_CHARS][WIDTH_CHARS + 1];
+
 
 // Function definitions
 
