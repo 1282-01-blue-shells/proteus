@@ -31,7 +31,6 @@ struct AssertionException : public std::exception {
 void registerIOVariable(const char* variableName, int* varPtr);
 void registerIOVariable(const char* variableName, float* varPtr);
 void registerIOFunction(const char* functionName, void (*funcPtr)());
-void registerMotor(FEHMotor* motor, int portNumber);
 
 void openIOMenu();
 

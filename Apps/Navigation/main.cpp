@@ -14,25 +14,16 @@ void backDownTheRamp();
 void motorTest();
 void encoderTest();
 
-FEHMotor leftMotor(FEHMotor::Motor0, 9);
-FEHMotor rightMotor(FEHMotor::Motor1, 9);
-
-DigitalEncoder leftEncoder(FEHIO::P1_0);
-DigitalEncoder rightEncoder(FEHIO::P1_1);
-
-/* DigitalInputPin leftSwitch(FEHIO::P0_0);
-DigitalInputPin rightSwitch(FEHIO::P0_1); */
 
 AnalogInputPin lightSensor(FEHIO::P0_7);
 
 float distanceToBackUp = 8.f;
+float lsThreshold = 2.f;
 
 int main() {
-    setMotors(&leftMotor, &rightMotor);
-    setEncoders(&leftEncoder, &rightEncoder);
-    registerMotor(&leftMotor, 0);
-    registerMotor(&rightMotor, 1);
     registerIOVariable("distanceToBackUp", &distanceToBackUp);
+    registerIOVariable("lsThreshold", &lsThreshold);
+
     registerIOFunction("motorTest()", &motorTest);
     registerIOFunction("encoderTest()", &encoderTest);
     registerIOFunction("waitForLight()", &waitForLight);
@@ -54,7 +45,7 @@ void waitForLight() {
     printWrapF(9, "Waiting for light...");
 
     //wait for light
-    while (lightSensor.Value()>2.50); //if no light do nothing
+    while (lightSensor.Value()>lsThreshold); //if no light do nothing
     setDebuggerFontColor(0xFFFF00);
     printWrapF(10, "NOW AT LAST I SEEEE THE LIGHT");
     setDebuggerFontColor();
@@ -67,96 +58,99 @@ void navigate() {
 
 void goToKiosk() {
     printNextLineF("starting");
-    driveWithSlowdown(2, MOTOR_POWER);
-    turnWithSlowdown(-20, MOTOR_POWER);
-    driveWithSlowdown(2, MOTOR_POWER);
-    turnWithSlowdown(-20, MOTOR_POWER);
+    Motors::drive(2);
+    Motors::turn(-20);
+    Motors::drive(2);
+    Motors::turn(-20);
 
     printNextLineF("going forward");
-    driveWithSlowdown(30, MOTOR_POWER);
+    Motors::drive(30);
 
     printNextLineF("turning left");
-    turnWithSlowdown(-45, MOTOR_POWER);
+    Motors::turn(-45);
 
     printNextLineF("going forward");
-    driveWithSlowdown(12, MOTOR_POWER);
+    Motors::drive(12);
 
     printNextLineF("turning right");
-    turnWithSlowdown(45, MOTOR_POWER);
+    Motors::turn(45);
 
     printNextLineF("going forward to kiosk");
-    startDriving(MOTOR_POWER);
-    /* while (leftSwitch.Value() && rightSwitch.Value()) {
-        abortCheck();
-    } */
-    Sleep(2.f);
+    Motors::start(true);
+    sleepWithAbortCheck(2.f);
 
-    stopDriving();
+    Motors::stop();
     printNextLineF("done");
 }
 
 void backDownTheRamp() {
-    driveWithSlowdown(distanceToBackUp, -MOTOR_POWER);
-    turnWithSlowdown(-45, MOTOR_POWER);
-    driveWithSlowdown(12, -MOTOR_POWER);
-    turnWithSlowdown(45, MOTOR_POWER);
-    driveWithSlowdown(24, -MOTOR_POWER);
+    Motors::drive(-distanceToBackUp);
+    Motors::turn(-45);
+    Motors::drive(-12);
+    Motors::turn(45);
+    Motors::drive(-24);
 }
 
 void motorTest() {
     printLineF(1, "left motor forward...");
-    leftMotor.SetPercent(40);
+    Motors::lMotor.SetPercent(40);
     sleepWithAbortCheck(3);
+
     printLineF(2, "left motor backward...");
-    leftMotor.SetPercent(-40);
+    Motors::lMotor.SetPercent(-40);
     sleepWithAbortCheck(3);
-    leftMotor.Stop();
+
+    Motors::lMotor.Stop();
+
     printLineF(3, "right motor forward...");
-    rightMotor.SetPercent(40);
+    Motors::rMotor.SetPercent(40);
     sleepWithAbortCheck(3);
+
     printLineF(4, "right motor backward...");
-    rightMotor.SetPercent(-40);
+    Motors::rMotor.SetPercent(-40);
     sleepWithAbortCheck(3);
-    rightMotor.Stop();
+
+    Motors::rMotor.Stop();
+
     printLineF(5, "done.");
 }
 
 void encoderTest() {
     printLineF(1, "left motor forward...");
-    leftEncoder.ResetCounts();
-    leftMotor.SetPercent(MOTOR_POWER);
+    Motors::lEncoder.ResetCounts();
+    Motors::lMotor.SetPercent(MOTOR_POWER);
     double startTime = TimeNow();
     while (TimeNow() < startTime + 5) {
-        printLineF(2, "encoder reading: %i", leftEncoder.Counts());
+        printLineF(2, "encoder reading: %i", Motors::lEncoder.Counts());
         sleepWithAbortCheck(0.01f);
     }
 
     printLineF(3, "left motor backward...");
-    leftEncoder.ResetCounts();
-    leftMotor.SetPercent(-MOTOR_POWER);
+    Motors::lEncoder.ResetCounts();
+    Motors::lMotor.SetPercent(-MOTOR_POWER);
     startTime = TimeNow();
     while (TimeNow() < startTime + 5) {
-        printLineF(4, "encoder reading: %i", leftEncoder.Counts());
+        printLineF(4, "encoder reading: %i", Motors::lEncoder.Counts());
         sleepWithAbortCheck(0.01f);
     }
-    leftMotor.Stop();
+    Motors::lMotor.Stop();
 
     printLineF(5, "right motor forward...");
-    rightEncoder.ResetCounts();
-    rightMotor.SetPercent(MOTOR_POWER);
+    Motors::rEncoder.ResetCounts();
+    Motors::rMotor.SetPercent(MOTOR_POWER);
     startTime = TimeNow();
     while (TimeNow() < startTime + 5) {
-        printLineF(6, "encoder reading: %i", rightEncoder.Counts());
+        printLineF(6, "encoder reading: %i", Motors::rEncoder.Counts());
         sleepWithAbortCheck(0.01f);
     }
 
     printLineF(7, "right motor backward...");
-    rightEncoder.ResetCounts();
-    rightMotor.SetPercent(-MOTOR_POWER);
+    Motors::rEncoder.ResetCounts();
+    Motors::rMotor.SetPercent(-MOTOR_POWER);
     startTime = TimeNow();
     while (TimeNow() < startTime + 5) {
-        printLineF(8, "encoder reading: %i", rightEncoder.Counts());
+        printLineF(8, "encoder reading: %i", Motors::rEncoder.Counts());
         sleepWithAbortCheck(0.01f);
     }
-    rightMotor.Stop();
+    Motors::rMotor.Stop();
 }

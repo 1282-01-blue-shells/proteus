@@ -1,5 +1,7 @@
 #include "proteos.hpp"
 
+#include "navigation.hpp"
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,8 +64,6 @@ void* ioVars[MAX_IO_VARIABLES];
 const char* ioFuncNames[MAX_IO_FUNCTIONS];
 void (*ioFuncs[MAX_IO_FUNCTIONS])();
 
-FEHMotor* motors[NUM_MOTOR_PORTS] = {0};
-
 int currentIOVars = 0;
 int currentIOFuncs = 0;
 
@@ -107,10 +107,6 @@ void registerIOFunction(const char* functionName, void (*funcPtr)()) {
     ioFuncNames[currentIOFuncs] = functionName;
     ioFuncs[currentIOFuncs] = funcPtr;
     currentIOFuncs++;
-}
-
-void registerMotor(FEHMotor* motor, int portNumber) {
-    motors[portNumber] = motor;
 }
 
 void openIOMenu() {
@@ -440,11 +436,7 @@ void startDebugger() {
             delete e;
         }
 
-        for (int i = 0; i < NUM_MOTOR_PORTS; i++) {
-            if (motors[i] != NULL) {
-                motors[i]->Stop();
-            }
-        }
+        Motors::stop();
     }
 
     // if pressed, wait until release
