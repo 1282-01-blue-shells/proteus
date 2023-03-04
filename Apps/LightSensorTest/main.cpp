@@ -1,4 +1,5 @@
 #include <proteos.hpp>
+#include "navigation.hpp"
 
 #include <FEHLCD.h>
 #include <FEHIO.h>
@@ -11,8 +12,7 @@
 
 //DECLARING INPUTS
 AnalogInputPin cds(FEHIO::P0_0); //configure Cds cell as an analog input
-FEHMotor motorLeft(FEHMotor::Motor0,9.); //declare two motors (might change once move to actual bot)
-FEHMotor motorRight(FEHMotor::Motor1,9.);
+
 
 //DECLARING FUNCTIONS
 void StartAtLight();
@@ -20,39 +20,39 @@ void TraveltoKiosk();
 void DisplaySensorReading();
 
 int main() {
-    registerIOFunction("StartAtLight()", &StartAtLight);
-    registerIOFunction("TraveltoKiosk()", &TraveltoKiosk);
-    registerIOFunction("DisplaySensorReading()", &DisplaySensorReading);
+    ProteOS::registerFunction("StartAtLight()", &StartAtLight);
+    ProteOS::registerFunction("TraveltoKiosk()", &TraveltoKiosk);
+    ProteOS::registerFunction("DisplaySensorReading()", &DisplaySensorReading);
 
-    openIOMenu(); // "runs the os" opens the interface to run functions
+    ProteOS::run(); // "runs the os" opens the interface to run functions
 }
 
 //function to test whether robot responds to starting light
 void StartAtLight() {
     //start at back wall and wait for input
-    breakpoint();
-    printWrapF(1, "Received input, waiting for light");
+    Debugger::breakpoint();
+    Debugger::printWrap(1, "Received input, waiting for light");
 
     //wait for light
     while (cds.Value()>2.50); //if no light do nothing
-    printWrapF(3, "NOW AT LAST I SEEEE THE LIGHT");
+    Debugger::printWrap(3, "NOW AT LAST I SEEEE THE LIGHT");
     TraveltoKiosk();
 }
 
 //function to allow robot to travel to kiosk (right now testing if react to light turning on)
 void TraveltoKiosk(){
-    motorLeft.SetPercent(MOTOR_POWER_MED);
-    motorRight.SetPercent(MOTOR_POWER_MED);
+    Motors::lMotor.SetPercent(MOTOR_POWER_MED);
+    Motors::rMotor.SetPercent(MOTOR_POWER_MED);
     Sleep(2.0);
-    motorLeft.SetPercent(MOTOR_STOP);
-    motorRight.SetPercent(MOTOR_STOP);
+    Motors::lMotor.SetPercent(MOTOR_STOP);
+    Motors::rMotor.SetPercent(MOTOR_STOP);
     
 }
 
 void DisplaySensorReading() {
     while (true) {
-        printLineF(2, "Sensor Value: %f", cds.Value());
-        sleepWithAbortCheck(0.5);
+        Debugger::printLine(2, "Sensor Value: %f", cds.Value());
+        Debugger::sleep(0.5);
     }
 }
 /*

@@ -53,8 +53,8 @@ void tune2() {
 
 int main() {
     LCD.Clear();
-    registerIOFunction("tune1()", &tune1);
-    registerIOFunction("tune2()", &tune2);
+    ProteOS::registerFunction("tune1()", &tune1);
+    ProteOS::registerFunction("tune2()", &tune2);
 
-    openIOMenu();
+    ProteOS::run();
 }

@@ -1,124 +1,64 @@
 #include "proteos.hpp"
 
-#include "navigation.hpp"
+#include "string.h"
+#include "stdio.h"
 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <exception>
-
-#include <FEHLCD.h>
-#include <FEHUtility.h>
-#include <FEHBattery.h>
+#include "FEHLCD.h"
+#include "FEHUtility.h"
+#include "FEHBattery.h"
 
 
-// Constants
+// Static variable definitions
 
-#define BACKGROUND_COLOR 0x5040A0
-#define FOREGROUND_COLOR 0xD0C0FF
-
-#define DEBUGGER_BACKGROUND_COLOR 0x000000
-#define DEBUGGER_DEFAULT_FONT_COLOR 0x00E0F0
-#define DEBUGGER_ERROR_COLOR 0xFF0000
-
-#define WIDTH_CHARS 26
-#define HEIGHT_CHARS 13
-
-#define BUFFER_SIZE 30
-
-#define NUM_MOTOR_PORTS 4
-
-// Classes
-
-enum UIState {
-    Menu,
-    LookingAtIOVars,
-    LookingAtIOFuncs,
-    AccessingIOVars,
-    AccessingIOFuncs,
-    RanFunc
-};
-
-struct AbortException : public std::exception {};
-
-
-// private function declarations
-
-void drawScreen();
-void waitForInput();
-void editVariable();
-void startDebugger();
-
-void drawFolderIcon(int x, int y);
-
-
-// global variables
-
-UIState uiState = UIState::Menu;
-
-const char* ioVarNames[MAX_IO_VARIABLES];
-bool ioVarIsFP[MAX_IO_VARIABLES];
-void* ioVars[MAX_IO_VARIABLES];
-
-const char* ioFuncNames[MAX_IO_FUNCTIONS];
-void (*ioFuncs[MAX_IO_FUNCTIONS])();
-
-int currentIOVars = 0;
-int currentIOFuncs = 0;
-
-int selectedIOVar = 0;
-int selectedIOFunc = 0;
-
-
-bool inDebugger = false;
-bool functionAborted = false;
-char debuggerText[HEIGHT_CHARS][WIDTH_CHARS + 1];
-
-int debuggerFontColor = DEBUGGER_DEFAULT_FONT_COLOR;
-
+int ProteOS::backgroundColor = 0x5040A0;
+int ProteOS::foregroundColor = 0xD0C0FF;
+ProteOS::UIState ProteOS::uiState = UIState::Menu;
+int ProteOS::currentVars = 0;
+int ProteOS::currentFuncs = 0;
 
 // Function definitions
 
-AssertionException::AssertionException(const char* functionName, int lineNumber, const char* message) {
-    this->functionName = functionName;
-    this->lineNumber = lineNumber;
-    this->message = message;
+void ProteOS::registerVariable(const char* variableName, int* varPtr) {
+    if (currentVars >= MAX_VARIABLES) return;
+    varNames[currentVars] = variableName;
+    varTypes[currentVars] = VariableType::Int;
+    varPtrs[currentVars] = varPtr;
+    currentVars++;
 }
 
-void registerIOVariable(const char* variableName, int* varPtr) {
-    if (currentIOVars == MAX_IO_VARIABLES) return;
-    ioVarNames[currentIOVars] = variableName;
-    ioVarIsFP[currentIOVars] = false;
-    ioVars[currentIOVars] = varPtr;
-    currentIOVars++;
+void ProteOS::registerVariable(const char* variableName, float* varPtr) {
+    if (currentVars >= MAX_VARIABLES) return;
+    varNames[currentVars] = variableName;
+    varTypes[currentVars] = VariableType::Float;
+    varPtrs[currentVars] = varPtr;
+    currentVars++;
 }
 
-void registerIOVariable(const char* variableName, float* varPtr) {
-    if (currentIOVars == MAX_IO_VARIABLES) return;
-    ioVarNames[currentIOVars] = variableName;
-    ioVarIsFP[currentIOVars] = true;
-    ioVars[currentIOVars] = varPtr;
-    currentIOVars++;
+void ProteOS::registerVariable(const char* variableName, bool* varPtr) {
+    if (currentVars >= MAX_VARIABLES) return;
+    varNames[currentVars] = variableName;
+    varTypes[currentVars] = VariableType::Bool;
+    varPtrs[currentVars] = varPtr;
+    currentVars++;
 }
 
-void registerIOFunction(const char* functionName, void (*funcPtr)()) {
-    if (currentIOFuncs == MAX_IO_FUNCTIONS) return;
-    ioFuncNames[currentIOFuncs] = functionName;
-    ioFuncs[currentIOFuncs] = funcPtr;
-    currentIOFuncs++;
+void ProteOS::registerFunction(const char* functionName, void (*funcPtr)()) {
+    if (currentFuncs >= MAX_FUNCTIONS) return;
+    funcNames[currentFuncs] = functionName;
+    funcPtrs[currentFuncs] = funcPtr;
+    currentFuncs++;
 }
 
-void openIOMenu() {
+void ProteOS::run() {
     while (true) {
         drawScreen();
         waitForInput();
     }
 }
 
-void drawScreen() {
-    LCD.Clear(BACKGROUND_COLOR);
-    LCD.SetFontColor(FOREGROUND_COLOR);
+void ProteOS::drawScreen() {
+    LCD.Clear(backgroundColor);
+    LCD.SetFontColor(foregroundColor);
 
     char buf[BUFFER_SIZE + 1];
 
@@ -137,15 +77,20 @@ void drawScreen() {
             drawFolderIcon(76, 164);
             break;
 
-        case UIState::LookingAtIOVars:
+        case UIState::LookingAtVars:
             LCD.WriteAt("<", 4, 4);
             LCD.WriteAt("Variables", 40, 4);
-            for (int i = 0; i < currentIOVars; i++) {
-                LCD.WriteAt(ioVarNames[i], 16, 40 + 24*i);
-                if (ioVarIsFP[i]) {
-                    snprintf(buf, BUFFER_SIZE, "%.3f", *((float*) ioVars[i]));
-                } else {
-                    snprintf(buf, BUFFER_SIZE, "%i", *((int*) ioVars[i]));
+            for (int i = 0; i < currentVars; i++) {
+                LCD.WriteAt(varNames[i], 16, 40 + 24*i);
+                switch (varTypes[i]) {
+                    case Bool:
+                        snprintf(buf, BUFFER_SIZE, "%s", *((bool*) varPtrs[i]) ? "true" : "false");
+                        break;
+                    case Int:
+                        snprintf(buf, BUFFER_SIZE, "%i", *((int*) varPtrs[i]));
+                        break;
+                    case Float:
+                        snprintf(buf, BUFFER_SIZE, "%.3f", *((float*) varPtrs[i]));
                 }
 
                 // Cut it off if it's too long
@@ -155,29 +100,39 @@ void drawScreen() {
                 LCD.WriteAt(buf, 292 - 12*strlen(buf), 40 + 24*i);
             }
             break;
-        case UIState::LookingAtIOFuncs:
+        case UIState::LookingAtFuncs:
             LCD.WriteAt("<", 4, 4);
             LCD.WriteAt("Functions", 40, 4);
-            for (int i = 0; i < currentIOFuncs; i++) {
-                LCD.WriteAt(ioFuncNames[i], 16, 40 + 24*i);
+            for (int i = 0; i < currentFuncs; i++) {
+                LCD.WriteAt(funcNames[i], 16, 40 + 24*i);
             }
             break;
 
-        case UIState::AccessingIOVars:
+        case UIState::AccessingVar:
             LCD.WriteAt("<", 4, 4);
-            LCD.WriteAt(ioVarNames[selectedIOVar], 40, 4);
-            //void* ptr = ioVars[selectedIOVar];
+            LCD.WriteAt(varNames[selectedVar], 40, 4);
 
-            if (ioVarIsFP[selectedIOVar]) {
-                LCD.WriteAt("Type: float", 16, 40);
-            } else {
-                LCD.WriteAt("Type: int", 16, 40);
+            switch (varTypes[selectedVar]) {
+                case Bool:
+                    LCD.WriteAt("Type: bool", 16, 40);
+                    break;
+                case Int:
+                    LCD.WriteAt("Type: int", 16, 40);
+                    break;
+                case Float:
+                    LCD.WriteAt("Type: float", 16, 40);
+                    break;
             }
 
-            if (ioVarIsFP[selectedIOVar]) {
-                snprintf(buf, BUFFER_SIZE, "Value: %f", *((float*) ioVars[selectedIOVar]));
-            } else {
-                snprintf(buf, BUFFER_SIZE, "Value: %i", *((int*) ioVars[selectedIOVar]));
+            switch (varTypes[selectedVar]) {
+                case Bool:
+                    snprintf(buf, BUFFER_SIZE, "Value: %s", *((bool*) varPtrs[selectedVar]) ? "true" : "false");
+                    break;
+                case Int:
+                    snprintf(buf, BUFFER_SIZE, "Value: %i", *((int*) varPtrs[selectedVar]));
+                    break;
+                case Float:
+                    snprintf(buf, BUFFER_SIZE, "Value: %f", *((float*) varPtrs[selectedVar]));
             }
             LCD.WriteAt(buf, 16, 64);
 
@@ -185,32 +140,19 @@ void drawScreen() {
             LCD.WriteAt("Edit", 136, 208);
             break;
 
-        case UIState::AccessingIOFuncs:
+        case UIState::AccessingFunc:
             LCD.WriteAt("<", 4, 4);
-            LCD.WriteAt(ioFuncNames[selectedIOFunc], 40, 4);
-            LCD.DrawRectangle(20, 160, 120, 60);
+            LCD.WriteAt(funcNames[selectedFunc], 40, 4);
+            //LCD.DrawRectangle(20, 160, 120, 60);
             LCD.DrawRectangle(180, 160, 120, 60);
-            LCD.WriteAt("Run", 62, 182);
+            //LCD.WriteAt("Run", 62, 182);
             LCD.WriteAt("Debug", 210, 182);
             break;
-
-        case UIState::RanFunc:
-            LCD.WriteAt("<", 4, 4);
-            LCD.WriteAt(ioFuncNames[selectedIOFunc], 40, 4);
-            LCD.DrawRectangle(20, 160, 120, 60);
-            LCD.DrawRectangle(180, 160, 120, 60);
-            LCD.WriteAt("Run", 62, 182);
-            LCD.WriteAt("Debug", 210, 182);
-
-            LCD.WriteAt("Running...", 16, 40);
-            LCD.WriteAt("Completed", 16, 64);
-            break;
-
     }
 
 }
 
-void drawFolderIcon(int x, int y) {
+void ProteOS::drawFolderIcon(int x, int y) {
     LCD.DrawHorizontalLine(y+10, x+10, x+25);
     LCD.DrawHorizontalLine(y+15, x+25, x+50);
     LCD.DrawHorizontalLine(y+40, x+10, x+50);
@@ -219,7 +161,7 @@ void drawFolderIcon(int x, int y) {
     LCD.DrawVerticalLine(x+25, y+10, y+15);
 }
 
-void waitUntilPressAndRelease(float* x, float* y) {
+void ProteOS::waitUntilPressAndRelease(float* x, float* y) {
     if (x == NULL && y == NULL) {
         float throwaway;
         while (!LCD.Touch(&throwaway, &throwaway));
@@ -243,68 +185,58 @@ void waitUntilPressAndRelease(float* x, float* y) {
     }
 }
 
-void waitForInput() {
+void ProteOS::waitForInput() {
     float x, y;
     waitUntilPressAndRelease(&x, &y);
 
     switch (uiState) {
         case Menu:
             if (x < 70 && y > 164) {
-                uiState = UIState::LookingAtIOVars;
+                uiState = UIState::LookingAtVars;
             } else if (x < 142 && y > 164) {
-                uiState = UIState::LookingAtIOFuncs;
+                uiState = UIState::LookingAtFuncs;
             }
             break;
 
-        case LookingAtIOVars:
+        case LookingAtVars:
             if (x < 30 && y < 30) {
                 uiState = UIState::Menu;
             }
-            for (int i = 0; i < currentIOVars; i++) {
+            for (int i = 0; i < currentVars; i++) {
                 if (y > (float)(37 + 24*i) && y < (float)(61 + 24*i)) {
-                    selectedIOVar = i;
-                    uiState = UIState::AccessingIOVars;
+                    selectedVar = i;
+                    uiState = UIState::AccessingVar;
                 }
             }
             break;
 
-        case LookingAtIOFuncs:
+        case LookingAtFuncs:
             if (x < 30 && y < 30) {
                 uiState = UIState::Menu;
             }
-            for (int i = 0; i < currentIOFuncs; i++) {
+            for (int i = 0; i < currentFuncs; i++) {
                 if (y > (float)(37 + 24*i) && y < (float)(61 + 24*i)) {
-                    selectedIOFunc = i;
-                    uiState = UIState::AccessingIOFuncs;
+                    selectedFunc = i;
+                    uiState = UIState::AccessingFunc;
                 }
             }
             break;
 
-        case AccessingIOVars:
+        case AccessingVar:
             if (x < 30 && y < 30) {
-                uiState = UIState::LookingAtIOVars;
+                uiState = UIState::LookingAtVars;
             }
             if (x > 120 && x < 200 && y > 200) {
                 editVariable();
             }
             break;
 
-        case AccessingIOFuncs: case RanFunc:
+        case AccessingFunc:
             if (x < 30 && y < 30) {
-                uiState = UIState::LookingAtIOFuncs;
+                uiState = UIState::LookingAtFuncs;
             }
-            if (y > 140) {
-                if (x < 160) {
-                    LCD.SetFontColor(BACKGROUND_COLOR);
-                    LCD.FillRectangle(16, 40, 200, 48);
-                    LCD.SetFontColor(FOREGROUND_COLOR);
-                    LCD.WriteAt("Running...", 16, 40);
-                    ioFuncs[selectedIOFunc]();
-                    LCD.WriteAt("Completed.", 16, 64);
-                    uiState = UIState::RanFunc;
-                } else {
-                    startDebugger();
-                }
+            if (y > 140 && x > 160) {
+                Debugger::debugFunction(funcNames[selectedFunc], funcPtrs[selectedFunc]);
             }
             break;
 
@@ -312,19 +244,24 @@ void waitForInput() {
 }
 
 
-void editVariable() {
+void ProteOS::editVariable() {
     char text[BUFFER_SIZE + 1];
-    if (ioVarIsFP[selectedIOVar]) {
-        sprintf(text, "%.3f", *((float*) ioVars[selectedIOVar]));
-    } else {
-        sprintf(text, "%i", *((int*) ioVars[selectedIOVar]));
+    switch (varTypes[selectedVar]) {
+        case Bool:
+            snprintf(text, BUFFER_SIZE, "%i", *((char*) varPtrs[selectedVar]));
+            break;
+        case Int:
+            snprintf(text, BUFFER_SIZE, "%i", *((int*) varPtrs[selectedVar]));
+            break;
+        case Float:
+            snprintf(text, BUFFER_SIZE, "%.3f", *((float*) varPtrs[selectedVar]));
     }
     size_t cursorPos = strlen(text);
 
     // draw buttons
-    LCD.SetFontColor(BACKGROUND_COLOR);
+    LCD.SetFontColor(backgroundColor);
     LCD.FillRectangle(120, 200, 80, 40);
-    LCD.SetFontColor(FOREGROUND_COLOR);
+    LCD.SetFontColor(foregroundColor);
     LCD.WriteAt("7 8 9   <x  ", 88, 132);
     LCD.WriteAt("4 5 6       ", 88, 156);
     LCD.WriteAt("1 2 3  <   >", 88, 180);
@@ -333,9 +270,9 @@ void editVariable() {
 
 
     while (true) {
-        LCD.SetFontColor(BACKGROUND_COLOR);
+        LCD.SetFontColor(backgroundColor);
         LCD.FillRectangle(0, 96, 320, 20);
-        LCD.SetFontColor(FOREGROUND_COLOR);
+        LCD.SetFontColor(foregroundColor);
         LCD.WriteAt(text, 4, 96);
         LCD.WriteAt("_", 4 + 12*cursorPos, 100);
 
@@ -369,28 +306,40 @@ void editVariable() {
             }
         } else if (x > 166 && x < 238 && y > 201 && y < 225) {
             // Enter
-            if (ioVarIsFP[selectedIOVar]) {
-                float output = 0;
-                int success = sscanf(text, "%f", &output);
-                if (success) {
-                    *((float*) ioVars[selectedIOVar]) = output;
-                    return;
-                } else {
-                    LCD.WriteAt("Parse error", 160, 80);
-                    while (!LCD.Touch(&x, &y));
-                    LCD.SetFontColor(BACKGROUND_COLOR);
-                    LCD.WriteAt("Parse error", 160, 80);
-                    LCD.SetFontColor(FOREGROUND_COLOR);
-                }
-            } else {
-                int output = 0;
-                int success = sscanf(text, "%i", &output);
-                if (success) {
-                    *((int*) ioVars[selectedIOVar]) = output;
-                    return;
-                }
-            }
 
+            switch (varTypes[selectedVar]) {
+                case Bool:
+                    int output = 0;
+                    int success = sscanf(text, "%i", &output);
+                    if (success) {
+                        *((bool*) varPtrs[selectedVar]) = (bool) output;
+                        return;
+                    }
+                    break;
+                case Int:
+                    int output = 0;
+                    int success = sscanf(text, "%i", &output);
+                    if (success) {
+                        *((int*) varPtrs[selectedVar]) = output;
+                        return;
+                    }
+                    break;
+                case Float:
+                    float output = 0;
+                    int success = sscanf(text, "%f", &output);
+                    if (success) {
+                        *((float*) varPtrs[selectedVar]) = output;
+                        return;
+                    } else {
+                        LCD.WriteAt("Parse error", 160, 80);
+                        while (!LCD.Touch(&x, &y));
+                        LCD.SetFontColor(backgroundColor);
+                        LCD.WriteAt("Parse error", 160, 80);
+                        LCD.SetFontColor(foregroundColor);
+                    }
+                    break;
+            }
+            
         } else if (x < 30 && y < 30) {
             return;
         }
@@ -398,183 +347,3 @@ void editVariable() {
 }
 
 
-void startDebugger() {
-    functionAborted = false;
-    inDebugger = true;
-
-    setDebuggerFontColor();
-    clearDebugLog();
-
-    LCD.Clear(DEBUGGER_BACKGROUND_COLOR);
-    LCD.SetFontColor(debuggerFontColor);
-    LCD.WriteRC("Abort", 13, 21);
-    printLineF(0, "Debugger: %s", ioFuncNames[selectedIOFunc]);
-    printLineF(12, "Touch to run function.");
-
-    float x, y;
-    waitUntilPressAndRelease(&x, &y);
-
-    printLineF(12, "");
-
-    if (x > 240 && y > 200) {
-        functionAborted = true;
-    } else {
-        try {
-            abortCheck();
-            ioFuncs[selectedIOFunc]();
-            printLineF(12, "Completed. Touch to close.");
-        } catch (AbortException* e) {
-            setDebuggerFontColor(DEBUGGER_ERROR_COLOR);
-            printLineF(12, "Aborted. Touch to close.");
-            delete e;
-        } catch (AssertionException* e) {
-            setDebuggerFontColor(DEBUGGER_ERROR_COLOR);
-            printLineF(9, "Assertion Failed at");
-            printLineF(10, "line %i in %s", e->lineNumber, e->functionName);
-            printLineF(11, "%s", e->message);
-            printLineF(12, "Touch to close.");
-            delete e;
-        }
-
-        Motors::stop();
-    }
-
-    // if pressed, wait until release
-    while (LCD.Touch(&x, &y));
-    
-    waitUntilPressAndRelease(NULL, NULL);
-
-    inDebugger = false;
-}
-
-
-void printLineF(int row, const char* format, ...) {
-    if (!inDebugger || row < 0 || row >= HEIGHT_CHARS) return;
-    va_list valist;
-    va_start(valist, format);
-    vsnprintf(debuggerText[row], WIDTH_CHARS, format, valist);
-    LCD.SetFontColor(DEBUGGER_BACKGROUND_COLOR);
-    LCD.FillRectangle(0, row*17, 320, 17);
-    LCD.SetFontColor(debuggerFontColor);
-    LCD.WriteRC(debuggerText[row], row, 0);
-    va_end(valist);
-}
-
-void printAppendF(int row, const char* format, ...) {
-    if (!inDebugger || row < 0 || row >= HEIGHT_CHARS) return;
-    va_list valist;
-    va_start(valist, format);
-    LCD.SetFontColor(debuggerFontColor);
-    int currentLength = strlen(debuggerText[row]);
-    vsnprintf(debuggerText[row] + currentLength, WIDTH_CHARS - currentLength, format, valist);
-    LCD.WriteRC(debuggerText[row], row, 0);
-    va_end(valist);
-}
-
-int printNextLineF(const char* format, ...) {
-    if (!inDebugger) return -1;
-    va_list valist;
-    va_start(valist, format);
-    LCD.SetFontColor(debuggerFontColor);
-    int row = -1;
-    for (int i = 0; i < HEIGHT_CHARS; i++) {
-        if (strlen(debuggerText[i]) == 0) {
-            row = i;
-            vsnprintf(debuggerText[row], WIDTH_CHARS, format, valist);
-            LCD.WriteRC(debuggerText[row], row, 0);
-            break;
-        }
-    }
-    va_end(valist);
-    return row;
-}
-
-void printWrapF(int startRow, const char* format, ...) {
-    if (!inDebugger || startRow < 0 || startRow >= HEIGHT_CHARS) return;
-
-    char buf[WIDTH_CHARS*HEIGHT_CHARS + 1];
-    va_list valist;
-    va_start(valist, format);
-
-    vsnprintf(buf, WIDTH_CHARS*HEIGHT_CHARS, format, valist);
-
-    char* bufPos = buf;
-    int currentRow = startRow;
-    while (currentRow < HEIGHT_CHARS && strlen(bufPos) > 0) {
-        strncpy(debuggerText[currentRow], bufPos, WIDTH_CHARS);
-        LCD.SetFontColor(DEBUGGER_BACKGROUND_COLOR);
-        LCD.FillRectangle(0, currentRow*17, 320, 17);
-        LCD.SetFontColor(debuggerFontColor);
-        LCD.WriteRC(debuggerText[currentRow], currentRow, 0);
-        bufPos += strlen(debuggerText[currentRow]);
-        currentRow++;
-    }
-    
-    va_end(valist);
-}
-
-void setDebuggerFontColor(int color) {
-    debuggerFontColor = color;
-}
-
-void setDebuggerFontColor() {
-    debuggerFontColor = DEBUGGER_DEFAULT_FONT_COLOR;
-}
-
-void clearDebugLog() {
-    for (int i = 0; i < 13; i++) {
-        printLineF(i, "");
-    }
-}
-
-void breakpoint() {
-    if (!inDebugger) return;
-    float x, y;
-    printLineF(12, "Touch to continue.");
-
-    waitUntilPressAndRelease(&x, &y);
-
-    printLineF(12, "");
-
-    if (x > 240 && y > 200) {
-        throw new AbortException();
-    }
-}
-
-bool breakpoint(float timeout) {
-    if (!inDebugger) return false;
-    float xr, yr, x = 0, y = 0;
-    double targetTime = TimeNow() + timeout;
-    printLineF(12, "Touch or wait to continue.");
-
-    while (!LCD.Touch(&xr, &yr) && TimeNow() < targetTime);
-    while (LCD.Touch(&xr, &yr) && TimeNow() < targetTime) {
-        x = xr; y = yr;
-    };
-
-    printLineF(12, "");
-
-    bool timedOut = TimeNow() >= targetTime;
-
-    if (!timedOut && x > 240 && y > 200) {
-        throw new AbortException();
-    }
-
-    return timedOut;
-}
-
-
-void abortCheck() {
-    if (!inDebugger) return;
-    float x, y;
-    if (LCD.Touch(&x, &y) && x > 240 && y > 200) {
-        throw new AbortException();
-    }
-}
-
-void sleepWithAbortCheck(float time) {
-    double targetTime = TimeNow() + time;
-    while (TimeNow() < targetTime) {
-        abortCheck();
-    }
-}

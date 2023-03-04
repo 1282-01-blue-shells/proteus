@@ -50,12 +50,11 @@ public:
     // Recommended: 0.0 - 0.4
     static float delay;
 
-    
-
     // Motors and encoders. These will be given a value before the program starts, so
     //   constructing your own motor or encoder objects is not necessary.
     static FEHMotor lMotor, rMotor;
     static DigitalEncoder lEncoder, rEncoder;
+
 
 
     // Functions //
@@ -75,7 +74,7 @@ public:
     // Stops both motors.
     static void stop();
 
-    private:
+private:
     static void calculateMotorPower(float* leftPower, float* rightPower);
     static void doMovementWithSlowdown(float leftPower, float rightPower, int distanceInCounts);
 };
