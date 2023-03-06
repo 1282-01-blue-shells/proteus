@@ -411,7 +411,7 @@ int main()
 {
     ProteOS::registerFunction("initializeRPS()", &initializeRPS);
     ProteOS::registerFunction("setPOIs()", &setPOIs);
-    ProteOS::registerFunction("go_to_POIs()", &goToPOIs);
+    ProteOS::registerFunction("goToPOIs()", &goToPOIs);
     ProteOS::registerFunction("readPOIs()", &readPOIs);
     ProteOS::registerFunction("readResults()", &readResults);
     ProteOS::registerFunction("displayRPSInfo()", &displayRPSInfo);
