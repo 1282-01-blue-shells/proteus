@@ -33,7 +33,7 @@ void note(FEHBuzzer::stdnote frequency, float duration )
     note((int) frequency, (int)(duration*1000));
 }
 
-
+// Megalovania time for the win!
 void tune1() {
     note(Buzzer.D4, 1/16.);
     Sleep(1/16.);
