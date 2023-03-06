@@ -13,9 +13,9 @@
 
 // Static variable definitions
 
-int Debugger::backgroundColor = 0x000000;
-int Debugger::defaultFontColor = 0x00E0F0;
-int Debugger::errorColor = 0xFF0000;
+const int Debugger::backgroundColor = 0x000000;
+const int Debugger::defaultFontColor = 0x00E0F0;
+const int Debugger::errorColor = 0xFF0000;
 
 bool Debugger::inDebugger = false;
 int Debugger::debuggerFontColor = Debugger::defaultFontColor;

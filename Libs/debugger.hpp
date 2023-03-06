@@ -29,11 +29,11 @@ public:
     // Members //
 
     // Default: 0x000000
-    static int backgroundColor;
+    static const int backgroundColor;
     // Default: 0x00E0F0
-    static int defaultFontColor;
+    static const int defaultFontColor;
     // Default: 0xFF0000
-    static int errorColor;
+    static const int errorColor;
 
 
 
