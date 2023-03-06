@@ -1,12 +1,16 @@
 #include "proteos.hpp"
+
+#include "string.h"
+#include "stdio.h"
+#include "stdlib.h"
+
 #include "FEHUtility.h"
 
 
 void stanley();
 float square(float x);
 void testSquare();
-void nestedCallExample();
-void largeFunction();
+void computePi();
 void itsJoever();
 
 int var1 = 23;
@@ -21,7 +25,7 @@ int main(void) {
 
     ProteOS::registerFunction("stanley()", &stanley);
     ProteOS::registerFunction("testSquare()", &testSquare);
-    ProteOS::registerFunction("nestedCallExample()", &nestedCallExample);
+    ProteOS::registerFunction("computePi()", &computePi);
     ProteOS::registerFunction("itsJoever()", &itsJoever);
 
     ProteOS::run();
@@ -72,19 +76,49 @@ float square(float x) {
 
 
 
-// Example of a function that calls another function, which takes a while and can be aborted.
-void nestedCallExample() {
-    double startTime = TimeNow();
+// Example of a function that takes a while and can be aborted.
+void computePi() {
+    float targetTime = TimeNow() + 10;
 
-    largeFunction();
+    for (int n = 1;; n++) { // start by computing one digit, then two, then three, and so on
+        int m = 10*n/3 + 1;
+        int A[m]; // this is a buckets.
+        int digits[n]; // output
+        for (int i = 0; i < m; i++) {
+            A[i] = 2; // because pi is 2.22222... in base n/(2n+1)
+        }
+        for (int d = 0; d < n; d++) {
+            if (TimeNow() > targetTime) break; // Stop if it's been too long
+            for (int i = 0; i < m; i++) {
+                A[i] *= 10; // Uhh because base 10?
+            }
+            for (int i = m-1; i > 0; i--) {
+                int bd = 2*i + 1; // the denominator of the base at this bucket
+                A[i-1] += A[i] / bd * i; // vaguely reminiscent of "carrying the one" in addition
+                A[i] %= bd;
+            }
+            digits[d] = A[0]/10; // we got a digit now
+            A[0] %= 10;
+            if (digits[d] == 10) { // sometimes the digit fucking sucks
+                digits[d] = 0;
+                int i = d-1;
+                while (digits[i] == 9) {
+                    digits[i] = 0;
+                    i--;
+                }
+                digits[i]++;
+            }
+        }
+        if (TimeNow() > targetTime) break;
+        char buf[287];
+        sprintf(buf, "Pi = %i.", digits[0]);
+        for (int i = 0; i < n; i++) {
+            if (i+7 > 286) break;
+            buf[i+7] = digits[i] + '0'; // mmm i love segfaults
+        }
+        buf[(n+7 < 286) ? n+7 : 286] = '\0'; // can't forget your null terminator
 
-    Debugger::printNextLine("Elapsed time: %f", TimeNow() - startTime);
-}
-
-void largeFunction() {
-    for (int i = 0; i < 5; i++) {
-        Debugger::printNextLine("%i/5", i+1);
-        Debugger::sleep(1.0);
+        Debugger::printWrap(1, "%s", buf);
     }
 }
 

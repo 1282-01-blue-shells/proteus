@@ -1,0 +1,1 @@
+Checkpoint2_LIBS := proteos navigation
