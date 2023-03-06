@@ -10,6 +10,7 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 // Number of points of interest (i.e. A, B, C, D)
 #define NUM_POINTS_OF_INTEREST 4
@@ -45,7 +46,7 @@ DigitalEncoder left_encoder(FEHIO::P2_1);
 FEHMotor right_motor(FEHMotor::Motor1, 9.0);
 FEHMotor left_motor(FEHMotor::Motor0, 9.0);
 
-void set_POIs()
+void setPOIs()
 {
     // Declare variables
     float touch_x, touch_y;
@@ -281,16 +282,12 @@ void check_heading(float heading)
     }
 }
 
-void go_to_POIs() {
+void goToPOIs() {
     float touch_x, touch_y;
 
     float A_x, A_y, B_x, B_y, C_x, C_y, D_x, D_y;
     float A_heading, B_heading, C_heading, D_heading;
     int B_C_counts, C_D_counts, turn_90_counts, turn_180_counts;
-
-    RPS.InitializeTouchMenu();
-
-    set_POIs();
 
     LCD.Clear();
     LCD.WriteLine("Press Screen To Start Run");
@@ -395,14 +392,29 @@ void readResults() { // Quite possibly does not work
     SD.FScanf(resultsFile, "%286c", str); // this is kinda sketchy tbh
     SD.FClose(resultsFile);
     Debugger::printWrap(1, "%s", str);
+    if (strlen(str) < 286) Debugger::printNextLine("[end of file]");
+}
+
+void displayRPSInfo() {
+    while (true) {
+        Debugger::printLine(1, "   Region: %c", RPS.CurrentRegionLetter());
+        Debugger::printLine(2, "Time left: %i", RPS.Time());
+        Debugger::printLine(3, "    Lever: %i", RPS.GetCorrectLever());
+        Debugger::printLine(5, "        X: %f", RPS.X());
+        Debugger::printLine(6, "        Y: %f", RPS.Y());
+        Debugger::printLine(7, "  Heading: %f", RPS.Heading());
+        Debugger::sleep(0.05);
+    }
 }
 
 int main()
 {
     ProteOS::registerFunction("initializeRPS()", &initializeRPS);
-    ProteOS::registerFunction("set_POIs()", &set_POIs);
-    ProteOS::registerFunction("readPOIs", &readPOIs);
-    ProteOS::registerFunction("go_to_POIs()", &go_to_POIs);
+    ProteOS::registerFunction("setPOIs()", &setPOIs);
+    ProteOS::registerFunction("go_to_POIs()", &goToPOIs);
+    ProteOS::registerFunction("readPOIs()", &readPOIs);
+    ProteOS::registerFunction("readResults()", &readResults);
+    ProteOS::registerFunction("displayRPSInfo()", &displayRPSInfo);
 
     ProteOS::run();
 }
