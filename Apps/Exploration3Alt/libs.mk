@@ -1,0 +1,1 @@
+Exploration3Alt_LIBS := proteos navigation
