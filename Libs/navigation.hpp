@@ -8,8 +8,8 @@
 #define MOTOR_VOLTAGE 9.0f
 #define LEFT_MOTOR_PORT FEHMotor::Motor0
 #define RIGHT_MOTOR_PORT FEHMotor::Motor1
-#define LEFT_ENCODER_PIN FEHIO::P1_0
-#define RIGHT_ENCODER_PIN FEHIO::P1_1
+#define LEFT_ENCODER_PIN FEHIO::P0_0
+#define RIGHT_ENCODER_PIN FEHIO::P0_1
 
 // Constants for encoder count calculation
 #define ENCODER_COUNTS_PER_DEGREE 2.8f
