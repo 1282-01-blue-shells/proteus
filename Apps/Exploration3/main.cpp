@@ -235,10 +235,11 @@ void check_y(float y_coordinate, int orientation)
 }
 
 float halfRoundMod(float x, float n) {
-    float i = x % n;
-    if (i < 0) i += n;
-    if (i > n/2) i -= n;
-    return i;
+    float d = x / n;
+    float m = x - d;
+    if (m < 0) m += n;
+    if (m > n/2) m -= n;
+    return m;
 }
 
 
