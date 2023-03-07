@@ -190,7 +190,7 @@ C_STD := 17
 # :: [text]
 # The list of arguments that should be passed to all compiler invocations.
 COMMON_FLAGS := $(INCFLAGS) \
-                -Os \
+                -O0 \
                 -MMD \
                 -MP \
                 -mcpu=cortex-m4 \
