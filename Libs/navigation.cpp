@@ -44,7 +44,7 @@ void Motors::doMovementWithSlowdown(float leftPower, float rightPower, int dista
     for (int i = 0; i < slowdownStages; i++) {
 
         // Wait until the appropriate distance
-        while ((lEncoder.Counts() + rEncoder.Counts()) / 2 < distanceInCounts - (int)slowdownDistance) {
+        while ((lEncoder.Counts() + rEncoder.Counts()) / 2 < (int)slowdownDistance) {
             Debugger::abortCheck();
         }
 
@@ -81,7 +81,7 @@ void Motors::turn(float degrees) {
     } else {
         rightPower *= -1;
     }
-    
+
     int totalDistanceInCounts = (int) (abs(degrees) * ENCODER_COUNTS_PER_DEGREE);
 
     doMovementWithSlowdown(leftPower, rightPower, totalDistanceInCounts);
