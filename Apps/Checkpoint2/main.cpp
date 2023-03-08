@@ -103,6 +103,11 @@ void whatcolorisit(){
         Motors::drive(6);//go until hit button
     }
 
+    else{
+        // For if neither work
+        Debugger::printNextLine("I AM BLIND D:");
+    }
+
 }
 
 void comehome(){
