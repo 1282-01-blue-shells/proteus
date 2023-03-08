@@ -82,16 +82,6 @@ void gotocoloredlight(){
 }
 
 void whatcolorisit(){
-    // if light is blue
-    if (lightSensor.Value()>bluethreshold){
-        //backup into blue button
-        Debugger::printNextLine("LIGHT IS BLUE");
-        Motors::drive(-3); //back up 
-        Motors::turn(30); //turn to face kiosk
-        //Motors::turn(45); //position in front of blue button
-        Motors::drive(-6); //go until hit button (once add microswitches it will be until they are pressed)
-    }
-
     //if light is red
     if (lightSensor.Value()<redthreshold){
         //backup into red button
@@ -101,6 +91,16 @@ void whatcolorisit(){
         Motors::drive(2); //move forward a few inches
         Motors::turn(-40); //position in front of red button
         Motors::drive(6);//go until hit button
+    }
+
+    // if light is blue
+    else if (lightSensor.Value()>bluethreshold){
+        //backup into blue button
+        Debugger::printNextLine("LIGHT IS BLUE");
+        Motors::drive(-3); //back up 
+        Motors::turn(30); //turn to face kiosk
+        //Motors::turn(45); //position in front of blue button
+        Motors::drive(-6); //go until hit button (once add microswitches it will be until they are pressed)
     }
 
     else{
