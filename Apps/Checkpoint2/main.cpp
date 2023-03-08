@@ -7,9 +7,9 @@
 //Declaring Functions
 
 //Variables
-float bluethreshold=.4f;
+float bluethreshold=.5f; // need a range of .4 to .7 ?
 float redthreshold=.3f;
-float startingthreshold=2.f;
+float startingthreshold=2.0f;
 
 AnalogInputPin lightSensor(FEHIO::P0_7);
 
