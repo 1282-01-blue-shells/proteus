@@ -12,7 +12,7 @@
 #define RIGHT_ENCODER_PIN FEHIO::P0_1
 
 // Constants for encoder count calculation
-#define ENCODER_COUNTS_PER_DEGREE 2.8f
+#define ENCODER_COUNTS_PER_DEGREE 2.56f
 #define ENCODER_COUNTS_PER_INCH 40.489f
 
 // Constants for calculation of slowdown
