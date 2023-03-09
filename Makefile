@@ -107,6 +107,7 @@ endif
 
 LIBS := $(basename $(notdir $(wildcard $(LIBS_DIR)/*.cpp)))
 -include $(foreach app,$(APPS),$(APPS_DIR)/$(app)/libs.mk)
+-include $(foreach lib,$(LIBS),$(LIBS_DIR)/$(lib).mk)
 
 # :: [text]
 # The basenames of all products to be built.
