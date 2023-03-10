@@ -13,6 +13,9 @@ float startingthreshold=2.0f;
 
 AnalogInputPin lightSensor(FEHIO::P0_7);
 
+float rampDistance = 34;
+float lightDistance = 2;
+
 void waitForLight();
 void runcheckpoint2();
 void gotocoloredlight();
@@ -22,6 +25,8 @@ void comehome();
 int main() {
     ProteOS::registerVariable("redthreshold", &redthreshold);
     ProteOS::registerVariable("bluethreshold", &bluethreshold);
+    ProteOS::registerVariable("rampDistance", &rampDistance);
+    ProteOS::registerVariable("lightDistance", &lightDistance);
 
     ProteOS::registerFunction("runcheckpoint2()", &runcheckpoint2);
     ProteOS::registerFunction("waitForLight()",&waitForLight);
@@ -68,12 +73,34 @@ void gotocoloredlight(){
     Motors::turn(-20);
 
     Debugger::printNextLine("going forward"); //goes up ramp
-    Motors::drive(30);
+    Motors::drive(rampDistance);
     Debugger::printNextLine("CLEARED THE RAMP");
-    Debugger::printNextLine("turning left"); //turns to be in line with light
-    Motors::turn(-30);
+    //Debugger::printNextLine("turning left"); //turns to be in line with light
+    
+    // turn to face left wall
+    Motors::turn(-90);
+    // drive up to wall
+    Motors::drive(20);
+    // drive one second, running into wall
+    Motors::start(true);
+    Debugger::sleep(1);
+    Motors::stop();
+    // move back to luggage drop-off
+    Motors::drive(-8);
+    // turn to face luggage
+    Motors::turn(-90);
+    // drive one second, running into luggage
+    Motors::start(true);
+    Debugger::sleep(1);
+    Motors::stop();
+    // drive up next to the light
+    Motors::drive(-17);
+    // turn again and back up into the light
+    Motors::turn(-90);
+    Motors::drive(-lightDistance);
 
-    Debugger::printNextLine("going forward"); //goes to be on top of light
+
+    //Debugger::printNextLine("going forward"); //goes to be on top of light
     Motors::drive(20);
 
     Motors::stop();
