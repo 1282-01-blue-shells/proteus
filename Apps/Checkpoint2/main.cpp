@@ -7,7 +7,7 @@
 //Declaring Functions
 
 //Variables
-float bluethreshold=.5f; // need a range of .4 to .7 ?
+float bluethreshold=.9f; // need a range of .4 to .7 ?
 float redthreshold=.3f;
 float startingthreshold=2.0f;
 
@@ -83,7 +83,7 @@ void gotocoloredlight(){
 
 void whatcolorisit(){
     //if light is red
-    if (lightSensor.Value()<redthreshold){
+    if (lightSensor.Value() < redthreshold){
         //backup into red button
         Debugger::printNextLine("LIGHT IS RED"); 
         Motors::drive(-3); //back up
@@ -94,7 +94,7 @@ void whatcolorisit(){
     }
 
     // if light is blue
-    else if (lightSensor.Value()>bluethreshold){
+    else if (lightSensor.Value() < bluethreshold){
         //backup into blue button
         Debugger::printNextLine("LIGHT IS BLUE");
         Motors::drive(-3); //back up 

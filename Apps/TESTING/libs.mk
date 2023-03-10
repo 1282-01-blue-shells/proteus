@@ -1,1 +1,1 @@
-TESTING_LIBS := proteos navigation
+TESTING_LIBS := proteos debugger navigation

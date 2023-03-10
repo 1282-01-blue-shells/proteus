@@ -336,4 +336,4 @@ void ProteOS::editVariable() {
 }
 
 
-#include "debugger.cpp"
+//#include "debugger.cpp"

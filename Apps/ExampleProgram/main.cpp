@@ -112,9 +112,9 @@ void computePi() {
         if (TimeNow() > targetTime) break;
         char buf[287];
         sprintf(buf, "Pi = %i.", digits[0]);
-        for (int i = 0; i < n; i++) {
-            if (i+7 > 286) break;
-            buf[i+7] = digits[i] + '0'; // mmm i love segfaults
+        for (int i = 1; i < n; i++) {
+            if (i+6 > 286) break;
+            buf[i+6] = digits[i] + '0'; // mmm i love segfaults
         }
         buf[(n+7 < 286) ? n+7 : 286] = '\0'; // can't forget your null terminator
 

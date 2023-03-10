@@ -1,1 +1,1 @@
-Exploration3Alt_LIBS := proteos navigation
+Exploration3Alt_LIBS := proteos debugger navigation

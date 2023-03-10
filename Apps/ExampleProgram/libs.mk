@@ -1,1 +1,1 @@
-ExampleProgram_LIBS := proteos navigation
+ExampleProgram_LIBS := proteos debugger navigation

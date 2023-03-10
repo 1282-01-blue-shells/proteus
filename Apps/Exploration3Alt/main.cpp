@@ -399,7 +399,7 @@ void displayRPSInfo() {
     while (true) {
         Debugger::printLine(1, "   Region: %c", RPS.CurrentRegionLetter());
         Debugger::printLine(2, "Time left: %i", RPS.Time());
-        Debugger::printLine(3, "    Lever: %i", RPS.GetCorrectLever());
+        //Debugger::printLine(3, "    Lever: %i", RPS.GetCorrectLever());
         Debugger::printLine(5, "        X: %f", RPS.X());
         Debugger::printLine(6, "        Y: %f", RPS.Y());
         Debugger::printLine(7, "  Heading: %f", RPS.Heading());

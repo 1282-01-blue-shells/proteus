@@ -54,7 +54,7 @@ void Debugger::debugFunction(const char* functionName, void (*funcPtr)()) {
         printLine(12, "Completed. Touch to close.");
     } catch (AbortException* e) {
         setFontColor(errorColor);
-        printLine(12, "Aborted. Touch to close.");
+        printLine(12, "Aborted. Touch to bruh.");
         delete e;
     } catch (AssertionException* e) {
         setFontColor(errorColor);

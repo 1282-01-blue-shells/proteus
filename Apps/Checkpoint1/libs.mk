@@ -1,1 +1,1 @@
-Checkpoint1_LIBS := proteos navigation
+Checkpoint1_LIBS := proteos debugger navigation
