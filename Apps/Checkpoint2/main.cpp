@@ -2,11 +2,13 @@
 #include "navigation.hpp"
 #include "FEHMotor.h"
 #include "FEHUtility.h"
-//Author AK Miedler
+// Primary Author: AK Miedler
+// Secondary Authors: Entire Team 
 
-//Declaring Functions
 
-//Variables
+
+// Variables
+
 float bluethreshold=.9f; // need a range of .4 to .7 ?
 float redthreshold=.3f;
 float startingthreshold=2.0f;
@@ -14,7 +16,14 @@ float startingthreshold=2.0f;
 AnalogInputPin lightSensor(FEHIO::P0_7);
 
 float rampDistance = 34;
-float lightDistance = 2;
+float kioskDistance = 18;
+float lightDistance = 4;
+
+float redLightDistance = 10.5f;
+float blueLightDistance = 6.0f;
+
+
+// Declaring Functions
 
 void waitForLight();
 void runcheckpoint2();
@@ -22,11 +31,15 @@ void gotocoloredlight();
 void whatcolorisit();
 void comehome();
 
+
 int main() {
     ProteOS::registerVariable("redthreshold", &redthreshold);
     ProteOS::registerVariable("bluethreshold", &bluethreshold);
     ProteOS::registerVariable("rampDistance", &rampDistance);
+    ProteOS::registerVariable("kioskDistance", &kioskDistance);
     ProteOS::registerVariable("lightDistance", &lightDistance);
+    ProteOS::registerVariable("redLightDistance", &redLightDistance);
+    ProteOS::registerVariable("blueLightDistance", &blueLightDistance);
 
     ProteOS::registerFunction("runcheckpoint2()", &runcheckpoint2);
     ProteOS::registerFunction("waitForLight()",&waitForLight);
@@ -39,12 +52,11 @@ int main() {
 }
 
 //running checkpoint
-void runcheckpoint2()
-{
+void runcheckpoint2() {
     waitForLight();
     gotocoloredlight();
     whatcolorisit();
-    comehome();
+    //comehome();
 }
 
 //function to keep bot stationary with no light and start moving when light turns on
@@ -65,7 +77,7 @@ void waitForLight() {
     Debugger::setFontColor();
 }
 
-void gotocoloredlight(){
+void gotocoloredlight() {
     Debugger::printNextLine("starting"); //positions to be in line with ramp (eventually want RPS here)
     Motors::drive(2);
     Motors::turn(-20);
@@ -94,50 +106,68 @@ void gotocoloredlight(){
     Debugger::sleep(1);
     Motors::stop();
     // drive up next to the light
-    Motors::drive(-17);
+    Motors::drive(-kioskDistance);
     // turn again and back up into the light
     Motors::turn(-90);
     Motors::drive(-lightDistance);
 
 
     //Debugger::printNextLine("going forward"); //goes to be on top of light
-    Motors::drive(20);
+    //Motors::drive(20);
 
     Motors::stop();
     Debugger::sleep(2.f);
     Debugger::printNextLine("determining light color...");
 }
 
-void whatcolorisit(){
+void whatcolorisit() {
+
+    int line = Debugger::printNextLine("LIGHT IS... ");
+
     //if light is red
-    if (lightSensor.Value() < redthreshold){
+    if (lightSensor.Value() < redthreshold) {
+        Debugger::setFontColor(0xFF0000);
+        Debugger::printAppend(line, "RED");
+        Debugger::setFontColor();
         //backup into red button
-        Debugger::printNextLine("LIGHT IS RED"); 
-        Motors::drive(-3); //back up
+        /* Motors::drive(-3); //back up
         Motors::turn(50); //turn so parallelish with kiosk
         Motors::drive(2); //move forward a few inches
         Motors::turn(-40); //position in front of red button
-        Motors::drive(6);//go until hit button
-    }
+        Motors::drive(6);//go until hit button */
 
-    // if light is blue
-    else if (lightSensor.Value() < bluethreshold){
+        // drive forward in line with light
+        Motors::drive(redLightDistance);
+        // turn and then back up into light
+        Motors::turn(90);
+        Motors::start(false);
+        Debugger::sleep(1);
+        Motors::stop();
+    } else if (lightSensor.Value() < bluethreshold) { // if light is blue
+        Debugger::setFontColor(0x0080FF);
+        Debugger::printAppend(line, "BLUE");
+        Debugger::setFontColor();
         //backup into blue button
-        Debugger::printNextLine("LIGHT IS BLUE");
-        Motors::drive(-3); //back up 
+        /* Motors::drive(-3); //back up 
         Motors::turn(30); //turn to face kiosk
         //Motors::turn(45); //position in front of blue button
-        Motors::drive(-6); //go until hit button (once add microswitches it will be until they are pressed)
-    }
+        Motors::drive(-6); //go until hit button (once add microswitches it will be until they are pressed) */
 
-    else{
+        // drive forward in line with light
+        Motors::drive(blueLightDistance);
+        // turn and then back up into light
+        Motors::turn(90);
+        Motors::start(false);
+        Debugger::sleep(1);
+        Motors::stop();
+    } else {
         // For if neither work
+        Debugger::printAppend(line, "OFF?");
         Debugger::printNextLine("I AM BLIND D:");
     }
-
 }
 
-void comehome(){
+void comehome() {
     //rps would be great here to get to same point moving on but whatever
     Debugger::printNextLine("GARRRYYY COME HOME");
     Motors::drive(-5); //move backward away from kiosk
