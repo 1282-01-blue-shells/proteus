@@ -299,17 +299,24 @@ $(PRODUCT_S19S): %.s19: %.elf
 	echo [ELF] $@
 	$(CXX) -o $@ $^ $(call ldflags,$(basename $@))
 
+define def_lib_recipes
+    __lib_$1_OBJS := $(foreach lib,$($1_LIBS),$(BUILD_DIR)/$(LIBS_DIR)/$(lib).o)
+
+    $(BUILD_DIR)/$(LIBS_DIR)/$1.o: $$(__lib_$1_OBJS)
+endef
+$(foreach lib,$(LIBS),$(eval $(call def_lib_recipes,$(lib))))
+
 # :: text -> [text]
 # Returns a sequence of Makefile statements that define app-specific recipes for the given
 # application.
 define def_app_recipes
-    __$1_OBJS := $(filter-out \
-                   $(foreach app,$(filter-out $1,$(APPS)),$(BUILD_DIR)/$(APPS_DIR)/$(app)/%.o) \
-                   $(foreach lib,$(filter-out $($1_LIBS),$(LIBS)), \
-                     $(BUILD_DIR)/$(LIBS_DIR)/$(lib).o), \
-                   $(OBJS))
+    __app_$1_OBJS := $(filter-out \
+                       $(foreach app,$(filter-out $1,$(APPS)),$(BUILD_DIR)/$(APPS_DIR)/$(app)/%.o) \
+                       $(foreach lib,$(filter-out $($1_LIBS),$(LIBS)), \
+                         $(BUILD_DIR)/$(LIBS_DIR)/$(lib).o), \
+                       $(OBJS))
 
-    $(BUILD_DIR)/$1.elf: $$(__$1_OBJS)
+    $(BUILD_DIR)/$1.elf: $$(__app_$1_OBJS)
 endef
 # Define all app-specific recipes.
 $(foreach app,$(APPS),$(eval $(call def_app_recipes,$(app))))
