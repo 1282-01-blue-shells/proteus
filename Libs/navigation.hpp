@@ -17,8 +17,12 @@
 
 // Constants for calculation of slowdown
 #define SLOWDOWN_THRESHOLD_COEFFICIENT 2.0f
-#define SLOWDOWN_POWER_REDUCTION 0.5f
-#define SLOWDOWN_DISTANCE_REDUCTION 0.5f
+#define SLOWDOWN_POWER_REDUCTION 0.4f
+#define SLOWDOWN_DISTANCE_REDUCTION 0.4f
+
+#define QRCODE_DEFAULT_X 0.0f
+#define QRCODE_DEFAULT_Y 0.0f
+#define QRCODE_DEFAULT_A 0.0f
 
 class Motors {
 public:
@@ -50,11 +54,19 @@ public:
     // Recommended: 0.0 - 0.4
     static float delay;
 
+    // How long in seconds the robot should wait to stabilize before calling RPS, in 
+    //   order to avoid latency issues.
+    // Default: 0.4
+    // Recommended: 0.2 - 0.6
+    static float rpsDelay;
+
     // Motors and encoders. These will be given a value before the program starts, so
     //   constructing your own motor or encoder objects is not necessary.
     static FEHMotor lMotor, rMotor;
     static DigitalEncoder lEncoder, rEncoder;
 
+    // Relative position and rotation of the QR code.
+    static float qrCodeX, qrCodeY, qrCodeA;
 
 
     // Functions //
@@ -67,12 +79,35 @@ public:
     //   backwards instead.
     static void drive(float distance);
 
+    // Starts both motors going forward.
+    static void start();
+
     // Starts both motors. If forward is true, it will drive forwards, and otherwise it
     //   will drive backwards.
     static void start(bool forward);
 
     // Stops both motors.
     static void stop();
+
+    // Moves the robot and communicates with RPS in order to calculate the position and
+    //   rotation of the QR code, relative to the robot's center of rotation. Result is
+    //   displayed to the screen and stored in the appropriate variables. If an error
+    //   occurs, returns -1 instead.
+    static int calibrateQRCode();
+
+    // Uses RPS to determine the robot's position. On success, this will set the values
+    //   and return a success code of 0. On error, no values will be set and an error
+    //   code will be returned:
+    // -1: RPS is connected, but the QR code cannot be found on the course.
+    // -2: The QR code was found, but is in the deadzone.
+    // -3: RPS is not connected.
+    static int getCurrentPos(float* x, float* y, float* h);
+
+    // Uses RPS to drive to the specified absolute position and rotation. Does not 
+    //   check actual position or consider obstacles. Returns appropriate error codes on
+    //   failure, and 0 on success.
+    static int driveTo(float targetX, float targetY, float targetH);
+
 
 private:
     static void calculateMotorPower(float* leftPower, float* rightPower);
