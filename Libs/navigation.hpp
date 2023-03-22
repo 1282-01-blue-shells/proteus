@@ -12,7 +12,7 @@
 #define RIGHT_ENCODER_PIN FEHIO::P0_1
 
 // Constants for encoder count calculation
-#define ENCODER_COUNTS_PER_DEGREE 2.56f
+#define ENCODER_COUNTS_PER_DEGREE 2.65f
 #define ENCODER_COUNTS_PER_INCH 40.489f
 
 // Constants for calculation of slowdown
@@ -20,9 +20,9 @@
 #define SLOWDOWN_POWER_REDUCTION 0.4f
 #define SLOWDOWN_DISTANCE_REDUCTION 0.4f
 
-#define QRCODE_DEFAULT_X 0.0f
-#define QRCODE_DEFAULT_Y 0.0f
-#define QRCODE_DEFAULT_A 0.0f
+#define QRCODE_DEFAULT_X 5.6f
+#define QRCODE_DEFAULT_Y 0.5f
+#define QRCODE_DEFAULT_A -3.18f
 
 class Motors {
 public:
