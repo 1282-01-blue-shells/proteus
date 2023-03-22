@@ -42,8 +42,23 @@ public:
         y = x*o->y + y*o->x;
         x = newX;
     }
+    float dotProduct(Vector2* o) {
+        return (x * o->x) + (y * o->y);
+    }
     float crossProduct(Vector2* o) {
         return (x * o->y) - (y * o->x);
+    }
+    float angleDifference(Vector2* o) {
+        float angle = asin(crossProduct(o));
+        float dotP = dotProduct(o);
+        if (dotP < 0) {
+            if (angle > 0) {
+                angle = M_PI - angle;
+            } else {
+                angle = -M_PI + angle;
+            }
+        }
+        return angle;
     }
 };
 
@@ -54,7 +69,7 @@ float Motors::maxPower = 40;
 float Motors::motorPowerRatio = 1.0f;
 int Motors::slowdownStages = 1;
 float Motors::delay = 0.2f;
-float Motors::rpsDelay = 0.4f;
+float Motors::rpsDelay = 0.35f;
 
 float Motors::qrCodeX = QRCODE_DEFAULT_X;
 float Motors::qrCodeY = QRCODE_DEFAULT_Y;
@@ -198,10 +213,10 @@ int Motors::calibrateQRCode() {
     robotFacingDirection.normalize();
 
     // get the cross product
-    float crossProduct = robotFacingDirection.crossProduct(&qrCodeFacingDirection);
+    //float crossProduct = robotFacingDirection.crossProduct(&qrCodeFacingDirection);
 
     // the angle of displacement between the qr code's and the robot's facing directions
-    float angleDisp = asin(crossProduct);
+    float angleDisp = robotFacingDirection.angleDifference(&qrCodeFacingDirection);
     // this will be the relative angle of the qr code
 
 
@@ -225,6 +240,10 @@ int Motors::calibrateQRCode() {
     qrCodeX = qrCodeDisplacement.x;
     qrCodeY = qrCodeDisplacement.y;
     qrCodeA = angleDisp;
+
+    Debugger::printNextLine("QR Code X: %f", qrCodeX);
+    Debugger::printNextLine("QR Code Y: %f", qrCodeY);
+    Debugger::printNextLine("QR Code A: %f", qrCodeA);
     return 0;
 }
 
@@ -293,7 +312,7 @@ int Motors::driveTo(float targetX, float targetY, float targetH) {
     Vector2 currentFacingDirection(currentH * DEG_TO_RAD);
     
     // determine difference in angle to point in the correct direction
-    float angleDisp = asin(currentFacingDirection.crossProduct(&displacement));
+    float angleDisp = currentFacingDirection.angleDifference(&displacement);
 
     // convert the angle to rightwards degrees and then turn the correct amount
     turn(angleDisp * -RAD_TO_DEG);
@@ -303,7 +322,7 @@ int Motors::driveTo(float targetX, float targetY, float targetH) {
 
     // some more inverse trigonometry cross product shenanigans
     Vector2 targetFacingDirection(targetH * DEG_TO_RAD);
-    angleDisp = asin(displacement.crossProduct(&targetFacingDirection));
+    angleDisp = displacement.angleDifference(&targetFacingDirection);
     // turn to the intended final angle
     turn(angleDisp * -RAD_TO_DEG);
 
