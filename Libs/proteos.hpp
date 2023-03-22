@@ -38,7 +38,9 @@ private:
         LookingAtVars,
         LookingAtFuncs,
         AccessingVar,
-        AccessingFunc
+        AccessingFunc,
+        UsingRPSNotConnected,
+        UsingRPSConnected
     };
     static UIState uiState;
 
@@ -66,6 +68,7 @@ private:
     static void waitForInput();
     static void editVariable();
     static void drawFolderIcon(int x, int y);
+    static void drawRPSIcon(int x, int y);
 };
 
 

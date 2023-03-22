@@ -8,6 +8,7 @@
 #include "FEHLCD.h"
 #include "FEHUtility.h"
 #include "FEHBattery.h"
+#include "FEHRPS.h"
 
 
 // Static variable definitions
@@ -86,6 +87,8 @@ void ProteOS::drawScreen() {
             drawFolderIcon(4, 164);
             LCD.WriteAt("Funcs", 76, 220);
             drawFolderIcon(76, 164);
+            LCD.WriteAt("RPS", 160, 220);
+            drawRPSIcon(148, 164);
             break;
 
         case UIState::LookingAtVars:
@@ -155,9 +158,33 @@ void ProteOS::drawScreen() {
             LCD.WriteAt("<", 4, 4);
             LCD.WriteAt(funcNames[selectedFunc], 40, 4);
             //LCD.DrawRectangle(20, 160, 120, 60);
-            LCD.DrawRectangle(180, 160, 120, 60);
+            LCD.DrawRectangle(100, 160, 120, 60);
             //LCD.WriteAt("Run", 62, 182);
-            LCD.WriteAt("Debug", 210, 182);
+            LCD.WriteAt("Debug", 130, 182);
+            break;
+
+        case UIState::UsingRPSNotConnected:
+            LCD.WriteAt("<", 4, 4);
+            LCD.WriteAt("RPS", 40, 4);
+            LCD.WriteAt("RPS not connected.", 16, 40);
+            LCD.DrawRectangle(100, 160, 120, 60);
+            LCD.WriteAt("Connect", 118, 182);
+            break;
+        
+        case UIState::UsingRPSConnected:
+            LCD.WriteAt("<", 4, 4);
+            LCD.WriteAt("RPS", 40, 4);
+            LCD.WriteAt("RPS is connected.", 16, 40);
+            LCD.WriteAt("Current Region: ", 16, 64);
+            LCD.WriteAt(RPS.CurrentRegion(), 208, 64);
+            LCD.WriteAt("Time left: ", 16, 88);
+            LCD.WriteAt(RPS.Time(), 148, 88);
+            LCD.WriteAt("X: ", 16, 112);
+            LCD.WriteAt(RPS.X(), 52, 112);
+            LCD.WriteAt("Y: ", 16, 136);
+            LCD.WriteAt(RPS.Y(), 52, 136);
+            LCD.WriteAt("Heading: ", 16, 160);
+            LCD.WriteAt(RPS.Heading(), 124, 160);
             break;
     }
 
@@ -172,6 +199,25 @@ void ProteOS::drawFolderIcon(int x, int y) {
     LCD.DrawVerticalLine(x+25, y+10, y+15);
 }
 
+void ProteOS::drawRPSIcon(int x, int y) {
+    LCD.DrawCircle(x+30, y+25, 15);
+    LCD.DrawHorizontalLine(y+25, x+15, x+45);
+    LCD.DrawHorizontalLine(y+18, x+17, x+43);
+    LCD.DrawHorizontalLine(y+32, x+17, x+43);
+    LCD.DrawVerticalLine(x+30, y+10, y+40);
+    
+    LCD.DrawLine(x+21, y+25, x+23, y+18);
+    LCD.DrawLine(x+21, y+25, x+23, y+32);
+    LCD.DrawLine(x+23, y+18, x+30, y+10);
+    LCD.DrawLine(x+23, y+32, x+30, y+40);
+
+    LCD.DrawLine(x+39, y+25, x+37, y+18);
+    LCD.DrawLine(x+39, y+25, x+37, y+32);
+    LCD.DrawLine(x+37, y+18, x+30, y+10);
+    LCD.DrawLine(x+37, y+32, x+30, y+40);
+
+}
+
 void ProteOS::waitForInput() {
     float x, y;
     Debugger::waitUntilPressAndRelease(&x, &y);
@@ -182,12 +228,20 @@ void ProteOS::waitForInput() {
                 uiState = UIState::LookingAtVars;
             } else if (x < 142 && y > 164) {
                 uiState = UIState::LookingAtFuncs;
+            } else if (x < 214 && y > 164) {
+                if (RPS.CurrentRegion() >= 0) {
+                    uiState = UIState::UsingRPSConnected;
+                } else {
+                    uiState = UIState::UsingRPSNotConnected;
+                }
+                
             }
             break;
 
         case LookingAtVars:
             if (x < 30 && y < 30) {
                 uiState = UIState::Menu;
+                break;
             }
             for (int i = 0; i < currentVars; i++) {
                 if (y > (float)(37 + 24*i) && y < (float)(61 + 24*i)) {
@@ -200,6 +254,7 @@ void ProteOS::waitForInput() {
         case LookingAtFuncs:
             if (x < 30 && y < 30) {
                 uiState = UIState::Menu;
+                break;
             }
             for (int i = 0; i < currentFuncs; i++) {
                 if (y > (float)(37 + 24*i) && y < (float)(61 + 24*i)) {
@@ -212,6 +267,7 @@ void ProteOS::waitForInput() {
         case AccessingVar:
             if (x < 30 && y < 30) {
                 uiState = UIState::LookingAtVars;
+                break;
             }
             if (x > 120 && x < 200 && y > 200) {
                 editVariable();
@@ -221,9 +277,28 @@ void ProteOS::waitForInput() {
         case AccessingFunc:
             if (x < 30 && y < 30) {
                 uiState = UIState::LookingAtFuncs;
+                break;
             }
-            if (y > 140 && x > 160) {
+            if (y > 140 && x > 80 && x < 240) {
                 Debugger::debugFunction(funcNames[selectedFunc], funcPtrs[selectedFunc]);
+            }
+            break;
+
+        case UsingRPSNotConnected:
+            if (x < 30 && y < 30) {
+                uiState = UIState::Menu;
+                break;
+            }
+            if (y > 140 && x > 80 && x < 240) {
+                RPS.InitializeTouchMenu();
+                uiState = UIState::UsingRPSConnected;
+            }
+            break;
+
+        case UsingRPSConnected:
+            if (x < 30 && y < 30) {
+                uiState = UIState::Menu;
+                break;
             }
             break;
 
