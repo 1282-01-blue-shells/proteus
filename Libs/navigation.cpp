@@ -328,3 +328,39 @@ int Motors::driveTo(float targetX, float targetY, float targetH) {
 
     return 0;
 }
+
+int Motors::driveToBackwards(float targetX, float targetY, float targetH) {
+    float currentX, currentY, currentH;
+
+    // get the current position and rotation (and return early if error)
+    int err = getCurrentPos(&currentX, &currentY, &currentH);
+    if (err) return err;
+
+    // get displacement between the target position and the current position (but backwards)
+    Vector2 displacement(currentX - targetX, currentY - targetY);
+
+    // calculate distance between the points (used later)
+    float distance = displacement.radius();
+
+    // normalize for cross product
+    displacement.normalize();
+    // get the direction the robot is currently facing
+    Vector2 currentFacingDirection(currentH * DEG_TO_RAD);
+    
+    // determine difference in angle to point in the correct direction
+    float angleDisp = currentFacingDirection.angleDifference(&displacement);
+
+    // convert the angle to rightwards degrees and then turn the correct amount
+    turn(angleDisp * -RAD_TO_DEG);
+
+    // drive to the target point
+    drive(-distance);
+
+    // some more inverse trigonometry cross product shenanigans
+    Vector2 targetFacingDirection(targetH * DEG_TO_RAD);
+    angleDisp = displacement.angleDifference(&targetFacingDirection);
+    // turn to the intended final angle
+    turn(angleDisp * -RAD_TO_DEG);
+
+    return 0;
+}
