@@ -108,6 +108,9 @@ public:
     //   failure, and 0 on success.
     static int driveTo(float targetX, float targetY, float targetH);
 
+    // Same as driveTo(), except it goes backwards instead
+    static int driveToBackwards(float targetX, float targetY, float targetH);
+
 
 private:
     static void calculateMotorPower(float* leftPower, float* rightPower);

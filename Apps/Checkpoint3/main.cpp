@@ -12,16 +12,25 @@
 #define DEG_TO_RAD (M_PI / 180)
 #define RAD_TO_DEG (180 / M_PI)
 
+
+
+AnalogInputPin lightSensor(FEHIO::P0_7);
+
 FEHServo mouthServo(FEHServo::Servo0);
 
 float leversX = 12, leversY = 23, leversH = 270;
 float leverSpacing = -3;
 
+
+
 void calibrateServo();
 void testServo();
 void initializeRPS();
 void displayPosition();
-void goToPosition();
+void runCheckpoint();
+void waitForLight();
+void goToLever();
+void getCloserToLevers();
 void calibrateQRCode();
 void testTurn();
 void testDrive();
@@ -49,18 +58,24 @@ int main() {
     
     //ProteOS::registerFunction("calibrateServo()", &calibrateServo);
     //ProteOS::registerFunction("testServo()", &testServo);
-    ProteOS::registerFunction("initializeRPS()", &initializeRPS);
+    //ProteOS::registerFunction("initializeRPS()", &initializeRPS);
     ProteOS::registerFunction("calibrateQRCode()", &calibrateQRCode);
     ProteOS::registerFunction("displayPosition()", &displayPosition);
-    ProteOS::registerFunction("goToPosition()", &goToPosition);
+    ProteOS::registerFunction("runCheckpoint()", &runCheckpoint);
+    ProteOS::registerFunction("getCloserToLevers()", &getCloserToLevers);
+    ProteOS::registerFunction("goToLever()", &goToLever);
     ProteOS::registerFunction("flipLever()", &flipLever);
     //ProteOS::registerFunction("flipLeverDown()", &flipLeverDown);
     //ProteOS::registerFunction("flipLeverUp()", &flipLeverUp);
-    ProteOS::registerFunction("testTurn()", &testTurn);
-    ProteOS::registerFunction("testDrive()", &testDrive);
+    //ProteOS::registerFunction("testTurn()", &testTurn);
+    //ProteOS::registerFunction("testDrive()", &testDrive);
+
 
     ProteOS::run();
 }
+//STILL HAVE TO DO 
+// 1) Move at the light
+// 2) Once get the signal of which fuel pump it is move based off that
 
 void calibrateServo() {
     mouthServo.TouchCalibrate();
@@ -79,10 +94,10 @@ void testServo() {
         float x, y;
         if (LCD.Touch(&x, &y)) {
             if (x < 160) {
-                servoAngle -= 0.25f * y;
+                servoAngle -= 0.1f * y;
                 if (servoAngle < 0) servoAngle = 0;
             } else {
-                servoAngle += 0.25f * y;
+                servoAngle += 0.1f * y;
                 if (servoAngle > 180) servoAngle = 180;
             }
         }
@@ -104,8 +119,38 @@ void displayPosition() {
     }
 }
 
-void goToPosition() {
-    int correctLever = RPS.GetIceCream(); //getting the correct lever position
+void runCheckpoint() {
+    waitForLight();
+    getCloserToLevers();
+    goToLever();
+    flipLever();
+}
+
+void waitForLight() {
+    Debugger::printLine(9, "Waiting for light...");
+
+    // wait for light
+    while (lightSensor.Value()>2); // if no light do nothing
+
+
+    // Change font color to yellow
+    Debugger::setFontColor(0xFFFF00);
+
+    // Print funny message
+    Debugger::printWrap(10, "NOW AT LAST I SEEEE THE LIGHT");
+
+    // Reset font color
+    Debugger::setFontColor();
+}
+
+void getCloserToLevers() {
+    Debugger::printNextLine("Getting closer to levers");
+    Motors::driveTo(24, 15, 0);
+    Motors::driveToBackwards(18, 22, 0);
+}
+
+void goToLever() {
+    int correctLever = RPS.GetCorrectLever(); //getting the correct lever position
     float correctLeverPosition;
     if (correctLever == 0) {
         Debugger::printNextLine("Going to left lever");
@@ -117,7 +162,7 @@ void goToPosition() {
         Debugger::printNextLine("Going to right lever");
         correctLeverPosition = leversX + 2*leverSpacing;
     }
-    Motors::driveTo(correctLeverPosition, leversY, leversH);
+    Motors::driveToBackwards(correctLeverPosition, leversY, leversH);
 }
 
 void flipLever() {
@@ -164,9 +209,9 @@ void testTurn() {
 
     Motors::getCurrentPos(&x, &y, &h);
 
-    Debugger::printNextLine("X: exp %f act %f", targetX, x);
-    Debugger::printNextLine("Y: exp %f act %f", targetY, y);
-    Debugger::printNextLine("H: exp %f act %f", targetH, h);
+    Debugger::printNextLine("X: exp %.3f act %.3f", targetX, x);
+    Debugger::printNextLine("Y: exp %.3f act %.3f", targetY, y);
+    Debugger::printNextLine("H: exp %.3f act %.3f", targetH, h);
 }
 
 void testDrive() {
@@ -182,9 +227,9 @@ void testDrive() {
 
     Motors::getCurrentPos(&x, &y, &h);
 
-    Debugger::printNextLine("X: exp %f act %f", targetX, x);
-    Debugger::printNextLine("Y: exp %f act %f", targetY, y);
-    Debugger::printNextLine("H: exp %f act %f", targetH, h);
+    Debugger::printNextLine("X: exp %.3f act %.3f", targetX, x);
+    Debugger::printNextLine("Y: exp %.3f act %.3f", targetY, y);
+    Debugger::printNextLine("H: exp %.3f act %.3f", targetH, h);
 }
 
 
