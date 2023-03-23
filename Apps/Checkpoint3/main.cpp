@@ -18,9 +18,10 @@ AnalogInputPin lightSensor(FEHIO::P0_7);
 
 FEHServo mouthServo(FEHServo::Servo0);
 
-float leversX = 12, leversY = 23, leversH = 270;
+float leversX = 12, testangle= 75, leversY = 23, leversH = 270;
 float leverSpacing = -3;
 
+float firstlever = 16.5;
 
 
 void calibrateServo();
@@ -29,11 +30,14 @@ void initializeRPS();
 void displayPosition();
 void runCheckpoint();
 void waitForLight();
+
 void goToLever();
 void getCloserToLevers();
 void calibrateQRCode();
+
 void testTurn();
 void testDrive();
+void lineupwithwall(); //code to line up with wall so we don't need rps 
 
 void flipLever(); // flips down then up, tester
 
@@ -55,6 +59,11 @@ int main() {
     ProteOS::registerVariable("qrCodeX", &Motors::qrCodeX);
     ProteOS::registerVariable("qrCodeY", &Motors::qrCodeY);
     ProteOS::registerVariable("qrCodeA", &Motors::qrCodeA);
+
+
+    //for HARD CODING THE DISTANCE
+    ProteOS::registerVariable("distancetofirstlever",&firstlever);
+    ProteOS::registerVariable("testangle",&testangle);
     
     //ProteOS::registerFunction("calibrateServo()", &calibrateServo);
     //ProteOS::registerFunction("testServo()", &testServo);
@@ -62,7 +71,8 @@ int main() {
     ProteOS::registerFunction("calibrateQRCode()", &calibrateQRCode);
     ProteOS::registerFunction("displayPosition()", &displayPosition);
     ProteOS::registerFunction("runCheckpoint()", &runCheckpoint);
-    ProteOS::registerFunction("getCloserToLevers()", &getCloserToLevers);
+    ProteOS::registerFunction("lineupwithwall",&lineupwithwall);
+    //ProteOS::registerFunction("getCloserToLevers()", &getCloserToLevers); //same thing as lineupwith wall just with RPS
     ProteOS::registerFunction("goToLever()", &goToLever);
     ProteOS::registerFunction("flipLever()", &flipLever);
     //ProteOS::registerFunction("flipLeverDown()", &flipLeverDown);
@@ -121,7 +131,8 @@ void displayPosition() {
 
 void runCheckpoint() {
     waitForLight();
-    getCloserToLevers();
+    //getCloserToLevers();
+    lineupwithwall();
     goToLever();
     flipLever();
 }
@@ -143,6 +154,18 @@ void waitForLight() {
     Debugger::setFontColor();
 }
 
+void lineupwithwall(){
+    Motors::drive(2);
+    Motors::turn(-20);
+    Motors::drive(2);
+    Motors::turn(-20); //lining up with the ramp
+
+    Motors::drive(2); 
+    Motors::turn(-testangle); //lining up with the wall
+    Motors::drive(-6); //backing up into the wall
+
+}
+
 void getCloserToLevers() {
     Debugger::printNextLine("Getting closer to levers");
     Motors::driveTo(24, 15, 0);
@@ -154,15 +177,21 @@ void goToLever() {
     float correctLeverPosition;
     if (correctLever == 0) {
         Debugger::printNextLine("Going to left lever");
-        correctLeverPosition = leversX;
+        //correctLeverPosition = leversX;
+        Motors::drive(firstlever);
+        Motors::turn(-90); //face lever
     } else if (correctLever == 1) {
         Debugger::printNextLine("Going to middle lever");
-        correctLeverPosition = leversX + 1*leverSpacing;
+        //correctLeverPosition = leversX + 1*leverSpacing;
+        Motors::drive(firstlever+3);
+        Motors::turn(-90); //face lever
     } else if (correctLever == 2) {
         Debugger::printNextLine("Going to right lever");
-        correctLeverPosition = leversX + 2*leverSpacing;
+        //correctLeverPosition = leversX + 2*leverSpacing;
+        Motors::drive(firstlever+6);
+        Motors::turn(-90); //face lever
     }
-    Motors::driveToBackwards(correctLeverPosition, leversY, leversH);
+    //Motors::driveToBackwards(correctLeverPosition, leversY, leversH);
 }
 
 void flipLever() {
