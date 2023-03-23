@@ -61,9 +61,6 @@ int main() {
 
     ProteOS::run();
 }
-//STILL HAVE TO DO 
-// 1) Move at the light
-// 2) Once get the signal of which fuel pump it is move based off that
 
 void calibrateServo() {
     mouthServo.TouchCalibrate();
