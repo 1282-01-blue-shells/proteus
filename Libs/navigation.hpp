@@ -111,6 +111,7 @@ public:
     // Same as driveTo(), except it goes backwards instead
     static int driveToBackwards(float targetX, float targetY, float targetH);
  */
+    static void lineUpToAngle(float heading);
 
 private:
     static void calculateMotorPower(float* leftPower, float* rightPower);

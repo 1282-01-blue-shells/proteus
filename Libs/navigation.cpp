@@ -12,8 +12,8 @@
 #define DEG_TO_RAD (M_PI / 180)
 #define RAD_TO_DEG (180 / M_PI)
 
-// Lord help me
-class Vector2 {
+// Lord help me    // spoiler alert: he did not
+/* class Vector2 {
 public:
     float x, y;
 
@@ -60,7 +60,7 @@ public:
         }
         return angle;
     }
-};
+}; */
 
 
 // Static variable definitions
@@ -364,3 +364,15 @@ int Motors::driveToBackwards(float targetX, float targetY, float targetH) {
 
     return 0;
 } */
+
+void Motors::lineUpToAngle(float heading) {
+    float differenceInAngle;
+    do {
+        Debugger::sleep(0.2);
+        differenceInAngle = heading - RPS.Heading();
+        if (differenceInAngle < -180) differenceInAngle += 360;
+        if (differenceInAngle >= 180) differenceInAngle -= 360;
+
+        Motors::turn(-differenceInAngle);
+    } while (differenceInAngle > 1);
+}
