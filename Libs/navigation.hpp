@@ -12,7 +12,7 @@
 #define RIGHT_ENCODER_PIN FEHIO::P0_1
 
 // Constants for encoder count calculation
-#define ENCODER_COUNTS_PER_DEGREE 2.65f
+#define ENCODER_COUNTS_PER_DEGREE 2.56f
 #define ENCODER_COUNTS_PER_INCH 40.489f
 
 // Constants for calculation of slowdown
@@ -88,7 +88,7 @@ public:
 
     // Stops both motors.
     static void stop();
-
+/* 
     // Moves the robot and communicates with RPS in order to calculate the position and
     //   rotation of the QR code, relative to the robot's center of rotation. Result is
     //   displayed to the screen and stored in the appropriate variables. If an error
@@ -110,7 +110,7 @@ public:
 
     // Same as driveTo(), except it goes backwards instead
     static int driveToBackwards(float targetX, float targetY, float targetH);
-
+ */
 
 private:
     static void calculateMotorPower(float* leftPower, float* rightPower);

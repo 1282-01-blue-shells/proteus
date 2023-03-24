@@ -2,7 +2,6 @@
 
 #include "FEHRPS.h"
 
-#define _USE_MATH_DEFINES
 #include "math.h"
 
 #include "debugger.hpp"
@@ -191,7 +190,7 @@ void Motors::stop() {
     rMotor.Stop();
 }
 
-int Motors::calibrateQRCode() {
+/* int Motors::calibrateQRCode() {
     float x1, x2, x3,  y1, y2, y3,  a1;
     qrCodeX = 0;
     qrCodeY = 0;
@@ -364,4 +363,4 @@ int Motors::driveToBackwards(float targetX, float targetY, float targetH) {
     turn(angleDisp * -RAD_TO_DEG);
 
     return 0;
-}
+} */
