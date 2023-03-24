@@ -374,5 +374,5 @@ void Motors::lineUpToAngle(float heading) {
         if (differenceInAngle >= 180) differenceInAngle -= 360;
 
         Motors::turn(-differenceInAngle);
-    } while (differenceInAngle > 1);
+    } while (abs(differenceInAngle) > 2);
 }
