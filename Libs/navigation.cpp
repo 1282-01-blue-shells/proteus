@@ -1,6 +1,7 @@
 #include "navigation.hpp"
 
 #include "FEHRPS.h"
+#include "FEHUtility.h"
 
 #include "math.h"
 
@@ -12,7 +13,7 @@
 #define DEG_TO_RAD (M_PI / 180)
 #define RAD_TO_DEG (180 / M_PI)
 
-// Lord help me    // spoiler alert: he did not
+// Lord help me    // spoiler alert: he did not help me
 /* class Vector2 {
 public:
     float x, y;
@@ -69,11 +70,12 @@ float Motors::maxPower = 40;
 float Motors::motorPowerRatio = 1.0f;
 int Motors::slowdownStages = 1;
 float Motors::delay = 0.2f;
-float Motors::rpsDelay = 0.35f;
+float Motors::rpsDelay = 0.3f;
+float Motors::movementTimeout = 7.0f;
 
-float Motors::qrCodeX = QRCODE_DEFAULT_X;
+/* float Motors::qrCodeX = QRCODE_DEFAULT_X;
 float Motors::qrCodeY = QRCODE_DEFAULT_Y;
-float Motors::qrCodeA = QRCODE_DEFAULT_A;
+float Motors::qrCodeA = QRCODE_DEFAULT_A; */
 
 FEHMotor Motors::lMotor(LEFT_MOTOR_PORT, MOTOR_VOLTAGE);
 FEHMotor Motors::rMotor(RIGHT_MOTOR_PORT, MOTOR_VOLTAGE);
@@ -94,6 +96,13 @@ void Motors::calculateMotorPower(float* leftPower, float* rightPower) {
 }
 
 void Motors::doMovementWithSlowdown(float leftPower, float rightPower, int distanceInCounts) {
+    // floating point inaccuracies dictate that this will wait a few seconds less than 
+    //   expected if the proteus is left on for 194 days
+    // but if you look at the libraries the integer part of the time in seconds is 
+    //   actually a uint16. So if you leave your proteus on for 18 hours, 12 minutes,
+    //   and 15 seconds, and then start a motor movement, it will overflow and the
+    //   timeout will never happen
+    float timeoutTime = TimeNow() + movementTimeout;
 
     // The motors will slow down when there are this many counts until the end
     float slowdownDistance = maxPower * SLOWDOWN_THRESHOLD_COEFFICIENT;
@@ -109,6 +118,7 @@ void Motors::doMovementWithSlowdown(float leftPower, float rightPower, int dista
         // Wait until the appropriate distance
         while ((lEncoder.Counts() + rEncoder.Counts()) / 2 < distanceInCounts - (int)slowdownDistance) {
             Debugger::abortCheck();
+            if (TimeNow() > timeoutTime) break;
         }
 
         // Robot should now slow down
@@ -126,6 +136,7 @@ void Motors::doMovementWithSlowdown(float leftPower, float rightPower, int dista
     // Done with slowdown stages, wait for final stage to reach the end
     while ((lEncoder.Counts() + rEncoder.Counts()) / 2 < distanceInCounts) {
         Debugger::abortCheck();
+        if (TimeNow() > timeoutTime) break;
     }
 
     // We have arrived, stop motors
@@ -365,14 +376,37 @@ int Motors::driveToBackwards(float targetX, float targetY, float targetH) {
     return 0;
 } */
 
-void Motors::lineUpToAngle(float heading) {
-    float differenceInAngle;
-    do {
-        Debugger::sleep(0.2);
-        differenceInAngle = heading - RPS.Heading();
-        if (differenceInAngle < -180) differenceInAngle += 360;
-        if (differenceInAngle >= 180) differenceInAngle -= 360;
+float limitAngle(float a) {
+    a -= ((int) (a / 360)) * 360;
+    if (a < -180) a += 360;
+    if (a >= 180) a -= 360;
+}
 
-        Motors::turn(-differenceInAngle);
-    } while (abs(differenceInAngle) > 2);
+void Motors::lineUpToAngle(float targetH) {
+    float currentH = RPS.Heading();
+    while (abs(limitAngle(targetH - currentH)) > ERROR_THRESHOLD_DEGREES) {
+        Motors::turn(-limitAngle(targetH - currentH));
+        Debugger::sleep(rpsDelay);
+        currentH = RPS.Heading();
+    }
+}
+
+void Motors::lineUpToXCoordinate(float targetX) {
+    targetX += QRCODE_OFFSET * cos(RPS.Heading() * DEG_TO_RAD);
+    float currentX = RPS.X();
+    while (abs(targetX - currentX) > ERROR_THRESHOLD_INCHES) {
+        Motors::drive((targetX - currentX) / cos(RPS.Heading() * DEG_TO_RAD));
+        Debugger::sleep(rpsDelay);
+        currentX = RPS.X();
+    }
+}
+
+void Motors::lineUpToYCoordinate(float targetY) {
+    targetY += QRCODE_OFFSET * sin(RPS.Heading() * DEG_TO_RAD);
+    float currentY = RPS.X();
+    while (abs(targetY - currentY) > ERROR_THRESHOLD_INCHES) {
+        Motors::drive((targetY - currentY) / sin(RPS.Heading() * DEG_TO_RAD));
+        Debugger::sleep(rpsDelay);
+        currentY = RPS.Y();
+    }
 }

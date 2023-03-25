@@ -20,9 +20,13 @@
 #define SLOWDOWN_POWER_REDUCTION 0.4f
 #define SLOWDOWN_DISTANCE_REDUCTION 0.4f
 
-#define QRCODE_DEFAULT_X 5.6f
-#define QRCODE_DEFAULT_Y 0.5f
-#define QRCODE_DEFAULT_A -3.18f
+// How far forward the QR code is on the robot
+#define QRCODE_OFFSET 5.0f
+
+// The maximum acceptable difference in angle while lining up
+#define ERROR_THRESHOLD_DEGREES 1.5f
+// The maximum acceptable difference in position while lining up
+#define ERROR_THRESHOLD_INCHES 0.2f
 
 class Motors {
 public:
@@ -60,13 +64,20 @@ public:
     // Recommended: 0.2 - 0.6
     static float rpsDelay;
 
+    // The maximum amount of time to spend on a motor movement. If this much time
+    //   elapses and the robot is still not where it needs to be, it will stop the
+    //   current movement.
+    // Default: 7.0
+    // Recommended: 5.0 - 15.0
+    static float movementTimeout;
+
     // Motors and encoders. These will be given a value before the program starts, so
     //   constructing your own motor or encoder objects is not necessary.
     static FEHMotor lMotor, rMotor;
     static DigitalEncoder lEncoder, rEncoder;
 
     // Relative position and rotation of the QR code.
-    static float qrCodeX, qrCodeY, qrCodeA;
+    // static float qrCodeX, qrCodeY, qrCodeA;
 
 
     // Functions //
@@ -112,6 +123,8 @@ public:
     static int driveToBackwards(float targetX, float targetY, float targetH);
  */
     static void lineUpToAngle(float heading);
+    static void lineUpToXCoordinate(float x);
+    static void lineUpToYCoordinate(float y);
 
 private:
     static void calculateMotorPower(float* leftPower, float* rightPower);
