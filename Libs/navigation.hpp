@@ -21,12 +21,12 @@
 #define SLOWDOWN_DISTANCE_REDUCTION 0.4f
 
 // How far forward the QR code is on the robot
-#define QRCODE_OFFSET 5.0f
+#define QRCODE_OFFSET 6.0f
 
 // The maximum acceptable difference in angle while lining up
 #define ERROR_THRESHOLD_DEGREES 1.5f
 // The maximum acceptable difference in position while lining up
-#define ERROR_THRESHOLD_INCHES 0.2f
+#define ERROR_THRESHOLD_INCHES 0.5f
 
 class Motors {
 public:
@@ -64,12 +64,12 @@ public:
     // Recommended: 0.2 - 0.6
     static float rpsDelay;
 
-    // The maximum amount of time to spend on a motor movement. If this much time
-    //   elapses and the robot is still not where it needs to be, it will stop the
-    //   current movement.
-    // Default: 7.0
-    // Recommended: 5.0 - 15.0
-    static float movementTimeout;
+    // The maximum amount of time to spend on a motor movement, in seconds per inch. 
+    //   If this much time * the distance to travel elapses and the robot is still not 
+    //   where it needs to be, it will stop the current movement.
+    // Default: 0.2
+    // Recommended: 0.15 - 0.5
+    static float movementTimeoutPerInch;
 
     // Motors and encoders. These will be given a value before the program starts, so
     //   constructing your own motor or encoder objects is not necessary.

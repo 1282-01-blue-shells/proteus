@@ -71,7 +71,7 @@ float Motors::motorPowerRatio = 1.0f;
 int Motors::slowdownStages = 1;
 float Motors::delay = 0.2f;
 float Motors::rpsDelay = 0.3f;
-float Motors::movementTimeout = 7.0f;
+float Motors::movementTimeoutPerInch = 0.2f;
 
 /* float Motors::qrCodeX = QRCODE_DEFAULT_X;
 float Motors::qrCodeY = QRCODE_DEFAULT_Y;
@@ -102,7 +102,7 @@ void Motors::doMovementWithSlowdown(float leftPower, float rightPower, int dista
     //   actually a uint16. So if you leave your proteus on for 18 hours, 12 minutes,
     //   and 15 seconds, and then start a motor movement, it will overflow and the
     //   timeout will never happen
-    float timeoutTime = TimeNow() + movementTimeout;
+    float timeoutTime = (float) TimeNow() + movementTimeoutPerInch * distanceInCounts / ENCODER_COUNTS_PER_INCH;
 
     // The motors will slow down when there are this many counts until the end
     float slowdownDistance = maxPower * SLOWDOWN_THRESHOLD_COEFFICIENT;
@@ -376,12 +376,14 @@ int Motors::driveToBackwards(float targetX, float targetY, float targetH) {
     return 0;
 } */
 
+// helper function, wraps angle around to be between -180 and 180
 float limitAngle(float a) {
     a -= ((int) (a / 360)) * 360;
     if (a < -180) a += 360;
     if (a >= 180) a -= 360;
 }
 
+// turns the robot to the specified heading using RPS
 void Motors::lineUpToAngle(float targetH) {
     float currentH = RPS.Heading();
     while (abs(limitAngle(targetH - currentH)) > ERROR_THRESHOLD_DEGREES) {
@@ -391,22 +393,44 @@ void Motors::lineUpToAngle(float targetH) {
     }
 }
 
-void Motors::lineUpToXCoordinate(float targetX) {
-    targetX += QRCODE_OFFSET * cos(RPS.Heading() * DEG_TO_RAD);
+// moves the robot along its current facing axis until it reaches the specified x
+//   coordinate. works best if lined up with the x axis
+void Motors::lineUpToXCoordinate(float x) {
+
+    // account for how far forward the QR code is on the robot
+    float targetX = x + QRCODE_OFFSET * cos(RPS.Heading() * DEG_TO_RAD);
+
+    // repeat until close to the target position
     float currentX = RPS.X();
     while (abs(targetX - currentX) > ERROR_THRESHOLD_INCHES) {
+
+        // drive towards the target position (accounting for the robot's facing direction)
         Motors::drive((targetX - currentX) / cos(RPS.Heading() * DEG_TO_RAD));
+
+        // update position variable
         Debugger::sleep(rpsDelay);
         currentX = RPS.X();
+        targetX = x + QRCODE_OFFSET * cos(RPS.Heading() * DEG_TO_RAD);
     }
 }
 
-void Motors::lineUpToYCoordinate(float targetY) {
-    targetY += QRCODE_OFFSET * sin(RPS.Heading() * DEG_TO_RAD);
+// moves the robot along its current facing axis until it reaches the specified y
+//   coordinate. works best if lined up with the y axis
+void Motors::lineUpToYCoordinate(float y) {
+
+    // account for how far forward the QR code is on the robot
+    float targetY = y + QRCODE_OFFSET * sin(RPS.Heading() * DEG_TO_RAD);
+
+    // repeat until close to the target position
     float currentY = RPS.X();
     while (abs(targetY - currentY) > ERROR_THRESHOLD_INCHES) {
+
+        // drive towards the target position (accounting for the robot's facing direction)
         Motors::drive((targetY - currentY) / sin(RPS.Heading() * DEG_TO_RAD));
+
+        // update position variable
         Debugger::sleep(rpsDelay);
         currentY = RPS.Y();
+        targetY = y + QRCODE_OFFSET * sin(RPS.Heading() * DEG_TO_RAD);
     }
 }

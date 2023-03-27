@@ -1,0 +1,1 @@
+Checkpoint4_LIBS := proteos debugger navigation
