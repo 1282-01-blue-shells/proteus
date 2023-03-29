@@ -4,6 +4,7 @@
 #include "FEHUtility.h"
 
 #include "math.h"
+#include "stdlib.h"
 
 #include "debugger.hpp"
 
@@ -406,16 +407,21 @@ float limitAngle(float a) {
     while (a >= 180) a -= 360;
 }
 
+// "error-type" "internal error" hey compiler how about you shut th
+float absVal(float a) {
+    return (a < 0) ? -a : a;
+}
+
 // turns the robot to the specified heading using RPS
 void Motors::lineUpToAngle(float targetH) {
 
     Debugger::printLine(1, "turning to h = %.1f", targetH);
 
     float currentH = RPS.Heading();
-    while (abs(limitAngle(targetH - currentH)) > ERROR_THRESHOLD_DEGREES) {
+    while (absVal(limitAngle(targetH - currentH)) > ERROR_THRESHOLD_DEGREES) {
 
         Debugger::printLine(2, "targ: %.1f curr: %.1f", targetH, currentH);
-        Debugger::printLine(3, "error: ", abs(targetH - currentH));
+        Debugger::printLine(3, "error: ", limitAngle(targetH - currentH));
 
         Motors::turn(-limitAngle(targetH - currentH));
         Debugger::sleep(rpsDelay);
@@ -423,7 +429,7 @@ void Motors::lineUpToAngle(float targetH) {
     }
 
     Debugger::printLine(2, "targ: %.1f curr: %.1f", targetH, currentH);
-    Debugger::printLine(3, "error: ", abs(targetH - currentH));
+    Debugger::printLine(3, "error: %.1f", limitAngle(targetH - currentH));
     Debugger::printLine(4, "Finished");
 }
 
