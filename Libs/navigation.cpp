@@ -402,24 +402,36 @@ int Motors::driveToBackwards(float targetX, float targetY, float targetH) {
 
 // helper function, wraps angle around to be between -180 and 180
 float limitAngle(float a) {
-    a -= ((int) (a / 360)) * 360;
-    if (a < -180) a += 360;
-    if (a >= 180) a -= 360;
+    while (a < -180) a += 360;
+    while (a >= 180) a -= 360;
 }
 
 // turns the robot to the specified heading using RPS
 void Motors::lineUpToAngle(float targetH) {
+
+    Debugger::printLine(1, "turning to h = %.1f", targetH);
+
     float currentH = RPS.Heading();
     while (abs(limitAngle(targetH - currentH)) > ERROR_THRESHOLD_DEGREES) {
+
+        Debugger::printLine(2, "targ: %.1f curr: %.1f", targetH, currentH);
+        Debugger::printLine(3, "error: ", abs(targetH - currentH));
+
         Motors::turn(-limitAngle(targetH - currentH));
         Debugger::sleep(rpsDelay);
         currentH = RPS.Heading();
     }
+
+    Debugger::printLine(2, "targ: %.1f curr: %.1f", targetH, currentH);
+    Debugger::printLine(3, "error: ", abs(targetH - currentH));
+    Debugger::printLine(4, "Finished");
 }
 
 // moves the robot along its current facing axis until it reaches the specified x
 //   coordinate. works best if lined up with the x axis
 void Motors::lineUpToXCoordinate(float x) {
+
+    Debugger::printLine(1, "going to x = %.1f", x);
 
     // account for how far forward the QR code is on the robot
     float targetX = x + QRCODE_OFFSET * cos(RPS.Heading() * DEG_TO_RAD);
@@ -427,6 +439,9 @@ void Motors::lineUpToXCoordinate(float x) {
     // repeat until close to the target position
     float currentX = RPS.X();
     while (abs(targetX - currentX) > ERROR_THRESHOLD_INCHES) {
+
+        Debugger::printLine(2, "targ: %.1f curr: %.1f", targetX, currentX);
+        Debugger::printLine(3, "error: ", abs(targetX - currentX));
 
         // drive towards the target position (accounting for the robot's facing direction)
         Motors::drive((targetX - currentX) / cos(RPS.Heading() * DEG_TO_RAD));
@@ -436,11 +451,17 @@ void Motors::lineUpToXCoordinate(float x) {
         currentX = RPS.X();
         targetX = x + QRCODE_OFFSET * cos(RPS.Heading() * DEG_TO_RAD);
     }
+
+    Debugger::printLine(2, "targ: %.1f curr: %.1f", targetX, currentX);
+    Debugger::printLine(3, "error: ", abs(targetX - currentX));
+    Debugger::printLine(4, "Finished");
 }
 
 // moves the robot along its current facing axis until it reaches the specified y
 //   coordinate. works best if lined up with the y axis
 void Motors::lineUpToYCoordinate(float y) {
+
+    Debugger::printLine(1, "going to y = %.1f", y);
 
     // account for how far forward the QR code is on the robot
     float targetY = y + QRCODE_OFFSET * sin(RPS.Heading() * DEG_TO_RAD);
@@ -448,6 +469,9 @@ void Motors::lineUpToYCoordinate(float y) {
     // repeat until close to the target position
     float currentY = RPS.X();
     while (abs(targetY - currentY) > ERROR_THRESHOLD_INCHES) {
+
+        Debugger::printLine(2, "targ: %.1f curr: %.1f", targetY, currentY);
+        Debugger::printLine(3, "error: ", abs(targetY - currentY));
 
         // drive towards the target position (accounting for the robot's facing direction)
         Motors::drive((targetY - currentY) / sin(RPS.Heading() * DEG_TO_RAD));
@@ -457,4 +481,8 @@ void Motors::lineUpToYCoordinate(float y) {
         currentY = RPS.Y();
         targetY = y + QRCODE_OFFSET * sin(RPS.Heading() * DEG_TO_RAD);
     }
+
+    Debugger::printLine(2, "targ: %.1f curr: %.1f", targetY, currentY);
+    Debugger::printLine(3, "error: ", abs(targetY - currentY));
+    Debugger::printLine(4, "Finished");
 }

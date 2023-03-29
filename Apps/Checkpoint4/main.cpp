@@ -30,13 +30,17 @@ float passportLeverX = 26;
 
 void runCheckpoint();
 void waitForLight();
-void goToStation();
+void akgoToStation();
+void reinagoToStation();
 void spinPassportLever();
+void testLineUpAngle();
+void testLineUpX();
 
 //NEW TESTING FUNCTIONS
 void check_x(float,int);
 void check_y(float,int);
 void check_heading(float);
+
 
 
 int main() {
@@ -52,9 +56,12 @@ int main() {
 
     //registering main functions
     ProteOS::registerFunction("waitForLight()", &waitForLight);
-    ProteOS::registerFunction("goToStation()", &goToStation);
+    ProteOS::registerFunction("goToStation()", &akgoToStation);
+    ProteOS::registerFunction("gotostationR()",&reinagoToStation);
     ProteOS::registerFunction("spinPassportLever()", &spinPassportLever);
     ProteOS::registerFunction("runCheckpoint()", &runCheckpoint);
+    ProteOS::registerFunction("testLineUpAngle()", &testLineUpAngle);
+    ProteOS::registerFunction("testLineUpX()", &testLineUpX);
 
     ProteOS::run();
 }
@@ -62,7 +69,8 @@ int main() {
 //RUNNING THE CHECKPOINT
 void runCheckpoint() {
     waitForLight();
-    goToStation();
+    //akgoToStation();
+    reinagoToStation();
     spinPassportLever();
 }
 
@@ -85,10 +93,7 @@ void waitForLight() {
 }
 
 //function to help bot navigate and also read the data needed
-void goToStation() {
-
-    float Ax,Ay,Bx,By,Cx,Cy,Dx,Dy,Ex,Ey;
-    float Ah,Bh,Ch,Dh,Eh;
+void akgoToStation() {
 
     //open up SD File for writing
     FEHFile *fptr = SD.FOpen("OUTPUTSD.txt","w");
@@ -99,9 +104,10 @@ void goToStation() {
     // turn southwest to back up to ramp
     // line up with the center of the ramp
     //SPOT A
-    check_x(rampX, PLUS);
     check_heading(225);
     Sleep(1.0);
+    Motors::drive(10);
+    check_x(rampX, PLUS);
 
     SD.FPrintf(fptr, "Actual A Position: %f %f %f \n", RPS.X(), RPS.Y(),RPS.Heading());
     Debugger::printNextLine("goin up da ramp");
@@ -109,37 +115,81 @@ void goToStation() {
     // SPOT B
     //turn north
     // go up ramp
-    check_y(rampTopY, PLUS);
     check_heading(90);
     Sleep(1.0);
-
+    Motors::drive(20);
+    check_y(rampTopY, PLUS);
     SD.FPrintf(fptr, "Actual B Position: %f %f %f \n", RPS.X(), RPS.Y(),RPS.Heading());
     Debugger::printNextLine("escapin da corner");
 
     //SPOT C
     // turn left and escape from the corner
-    check_x(escapeToX, MINUS);
     check_heading(135);
     Sleep(1.0);
+    Motors::drive(11);
+    check_x(escapeToX, MINUS);
     SD.FPrintf(fptr, "Actual C Position: %f %f %f \n", RPS.X(), RPS.Y(),RPS.Heading());
 
     Debugger::printNextLine("gittin lined up");
 
     //SPOT D
     // back up to be in line with the passport lever
-    check_y(passportLeverY, PLUS);
     check_heading(270);
     Sleep(1.0);
+    Motors::drive(10);
+    check_y(passportLeverY, PLUS);
 
     SD.FPrintf(fptr, "Actual D Position: %f %f %f \n", RPS.X(), RPS.Y(),RPS.Heading());
     
+
+    Debugger::printNextLine("Backing up now!");
     //SPOT E
     // turn to align back with station
     // back up
-    check_x(passportLeverX, PLUS);
     check_heading(180);
+    check_x(passportLeverX, PLUS);
     Sleep(1.0);
     SD.FPrintf(fptr, "Actual E Position: %f %f %f \n", RPS.X(), RPS.Y(),RPS.Heading());
+    
+}
+
+void reinagoToStation() {
+
+    Debugger::printNextLine("headin to da ramp");
+
+    // Starting at the light.
+    // turn southwest to back up to ramp
+    Motors::lineUpToAngle(225);
+
+    // line up with the center of the ramp
+    Motors::lineUpToXCoordinate(rampX);
+
+    Debugger::printNextLine("goin up da ramp");
+
+    // turn north
+    Motors::lineUpToAngle(90);
+
+    // go up ramp
+    Motors::lineUpToYCoordinate(rampTopY);
+
+    Debugger::printNextLine("escapin da corner");
+
+    // turn left and escape from the corner
+    Motors::lineUpToAngle(135);
+    Motors::lineUpToXCoordinate(escapeToX);
+
+    Debugger::printNextLine("gittin lined up");
+
+    // back up to be in line with the passport lever
+    Motors::lineUpToAngle(270);
+    Motors::lineUpToYCoordinate(passportLeverY);
+
+    // turn to align back with station
+    Motors::lineUpToAngle(180);
+
+    // back up
+    Motors::lineUpToXCoordinate(passportLeverX);
+
 }
 
 void rotateServoSlow(float start, float end) {
@@ -184,6 +234,14 @@ void spinPassportLever() {
 
     // Reset servo angle
     r2d2Servo.SetDegree(90);
+}
+
+void testLineUpAngle() {
+    Motors::lineUpToAngle(90);
+}
+
+void testLineUpX() {
+    Motors::lineUpToXCoordinate(18);
 }
 
 //having bot move to x_coordinate using RPS
