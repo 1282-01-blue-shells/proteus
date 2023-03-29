@@ -4,7 +4,6 @@
 #include "FEHUtility.h"
 
 #include "math.h"
-#include "stdlib.h"
 
 #include "debugger.hpp"
 
@@ -421,7 +420,7 @@ void Motors::lineUpToAngle(float targetH) {
     while (absVal(limitAngle(targetH - currentH)) > ERROR_THRESHOLD_DEGREES) {
 
         Debugger::printLine(2, "targ: %.1f curr: %.1f", targetH, currentH);
-        Debugger::printLine(3, "error: ", limitAngle(targetH - currentH));
+        Debugger::printLine(3, "error: %.1f", limitAngle(targetH - currentH));
 
         Motors::turn(-limitAngle(targetH - currentH));
         Debugger::sleep(rpsDelay);
@@ -447,7 +446,7 @@ void Motors::lineUpToXCoordinate(float x) {
     while (abs(targetX - currentX) > ERROR_THRESHOLD_INCHES) {
 
         Debugger::printLine(2, "targ: %.1f curr: %.1f", targetX, currentX);
-        Debugger::printLine(3, "error: ", abs(targetX - currentX));
+        Debugger::printLine(3, "error: %.1f", abs(targetX - currentX));
 
         // drive towards the target position (accounting for the robot's facing direction)
         Motors::drive((targetX - currentX) / cos(RPS.Heading() * DEG_TO_RAD));
@@ -459,7 +458,7 @@ void Motors::lineUpToXCoordinate(float x) {
     }
 
     Debugger::printLine(2, "targ: %.1f curr: %.1f", targetX, currentX);
-    Debugger::printLine(3, "error: ", abs(targetX - currentX));
+    Debugger::printLine(3, "error: %.1f", abs(targetX - currentX));
     Debugger::printLine(4, "Finished");
 }
 
@@ -477,7 +476,7 @@ void Motors::lineUpToYCoordinate(float y) {
     while (abs(targetY - currentY) > ERROR_THRESHOLD_INCHES) {
 
         Debugger::printLine(2, "targ: %.1f curr: %.1f", targetY, currentY);
-        Debugger::printLine(3, "error: ", abs(targetY - currentY));
+        Debugger::printLine(3, "error: %.1f", abs(targetY - currentY));
 
         // drive towards the target position (accounting for the robot's facing direction)
         Motors::drive((targetY - currentY) / sin(RPS.Heading() * DEG_TO_RAD));
@@ -489,6 +488,6 @@ void Motors::lineUpToYCoordinate(float y) {
     }
 
     Debugger::printLine(2, "targ: %.1f curr: %.1f", targetY, currentY);
-    Debugger::printLine(3, "error: ", abs(targetY - currentY));
+    Debugger::printLine(3, "error: %.1f", abs(targetY - currentY));
     Debugger::printLine(4, "Finished");
 }
