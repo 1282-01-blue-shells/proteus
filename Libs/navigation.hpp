@@ -90,6 +90,12 @@ public:
     //   backwards instead.
     static void drive(float distance);
 
+    //allows the bot to pulse forward at a given time/percent
+    static void pulse_forward(int percent, float seconds);
+
+    //allows the bot to pulse counterclockwise a shorter distance at a diff percent/time
+    static void pulse_counterclockwise(int percent, float seconds);
+
     // Starts both motors going forward.
     static void start();
 

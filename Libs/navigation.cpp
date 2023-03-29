@@ -178,6 +178,30 @@ void Motors::drive(float distance) {
     doMovementWithSlowdown(leftPower, rightPower, totalDistanceInCounts);
 }
 
+void Motors::pulse_forward(int percent, float seconds){
+    
+    lMotor.SetPercent(percent);
+    rMotor.SetPercent(percent);
+
+    Sleep(seconds);
+
+    //stop motors after pulse is complete
+    lMotor.Stop();
+    rMotor.Stop();
+}
+
+void Motors::pulse_counterclockwise(int percent, float seconds)
+{
+    lMotor.SetPercent(-percent);
+    rMotor.SetPercent(percent);
+
+    Sleep(seconds);
+
+    //stop motors after pulse is complete
+    lMotor.Stop();
+    rMotor.Stop();
+}
+
 void Motors::start() {
     Motors::start(true);
 }
