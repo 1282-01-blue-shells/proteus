@@ -156,7 +156,7 @@ void Motors::turn(float degrees) {
         rightPower *= -1;
     }
 
-    int totalDistanceInCounts = (int) (abs(degrees) * ENCODER_COUNTS_PER_DEGREE);
+    int totalDistanceInCounts = (int) (absVal(degrees) * ENCODER_COUNTS_PER_DEGREE);
 
     doMovementWithSlowdown(leftPower, rightPower, totalDistanceInCounts);
 }
@@ -173,7 +173,7 @@ void Motors::drive(float distance) {
         rightPower *= -1;
     }
 
-    int totalDistanceInCounts = (int) (abs(distance) * ENCODER_COUNTS_PER_INCH);
+    int totalDistanceInCounts = (int) (absVal(distance) * ENCODER_COUNTS_PER_INCH);
 
     doMovementWithSlowdown(leftPower, rightPower, totalDistanceInCounts);
 }
@@ -443,10 +443,10 @@ void Motors::lineUpToXCoordinate(float x) {
 
     // repeat until close to the target position
     float currentX = RPS.X();
-    while (abs(targetX - currentX) > ERROR_THRESHOLD_INCHES) {
+    while (absVal(targetX - currentX) > ERROR_THRESHOLD_INCHES) {
 
         Debugger::printLine(2, "targ: %.1f curr: %.1f", targetX, currentX);
-        Debugger::printLine(3, "error: %.1f", abs(targetX - currentX));
+        Debugger::printLine(3, "error: %.1f", absVal(targetX - currentX));
 
         // drive towards the target position (accounting for the robot's facing direction)
         Motors::drive((targetX - currentX) / cos(RPS.Heading() * DEG_TO_RAD));
@@ -458,7 +458,7 @@ void Motors::lineUpToXCoordinate(float x) {
     }
 
     Debugger::printLine(2, "targ: %.1f curr: %.1f", targetX, currentX);
-    Debugger::printLine(3, "error: %.1f", abs(targetX - currentX));
+    Debugger::printLine(3, "error: %.1f", absVal(targetX - currentX));
     Debugger::printLine(4, "Finished");
 }
 
@@ -473,10 +473,10 @@ void Motors::lineUpToYCoordinate(float y) {
 
     // repeat until close to the target position
     float currentY = RPS.X();
-    while (abs(targetY - currentY) > ERROR_THRESHOLD_INCHES) {
+    while (absVal(targetY - currentY) > ERROR_THRESHOLD_INCHES) {
 
         Debugger::printLine(2, "targ: %.1f curr: %.1f", targetY, currentY);
-        Debugger::printLine(3, "error: %.1f", abs(targetY - currentY));
+        Debugger::printLine(3, "error: %.1f", absVal(targetY - currentY));
 
         // drive towards the target position (accounting for the robot's facing direction)
         Motors::drive((targetY - currentY) / sin(RPS.Heading() * DEG_TO_RAD));
@@ -488,6 +488,6 @@ void Motors::lineUpToYCoordinate(float y) {
     }
 
     Debugger::printLine(2, "targ: %.1f curr: %.1f", targetY, currentY);
-    Debugger::printLine(3, "error: %.1f", abs(targetY - currentY));
+    Debugger::printLine(3, "error: %.1f", absVal(targetY - currentY));
     Debugger::printLine(4, "Finished");
 }
