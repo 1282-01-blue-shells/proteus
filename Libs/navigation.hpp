@@ -24,9 +24,9 @@
 #define QRCODE_OFFSET 6.0f
 
 // The maximum acceptable difference in angle while lining up
-#define ERROR_THRESHOLD_DEGREES 1.5f
+#define ERROR_THRESHOLD_DEGREES 0.5f
 // The maximum acceptable difference in position while lining up
-#define ERROR_THRESHOLD_INCHES 0.5f
+#define ERROR_THRESHOLD_INCHES 0.2f
 
 class Motors {
 public:

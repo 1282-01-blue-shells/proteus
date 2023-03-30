@@ -12,10 +12,11 @@ AnalogInputPin lightSensor(FEHIO::P0_7);
 FEHServo r2d2Servo(FEHServo::Servo1);
 
 float rampX = 30;
-float rampTopY = 40;
-float escapeToX = 18;
-float passportLeverY = 59;
+float rampTopY = 42;
+float escapeToX = 22;
+float passportLeverY = 60.5;
 float passportLeverX = 26;
+float spotA = 30;
 
 //MORE DEFINITIONS
 #define RPS_WAIT_TIME_IN_SEC 0.35
@@ -30,7 +31,7 @@ float passportLeverX = 26;
 
 void runCheckpoint();
 void waitForLight();
-void akgoToStation();
+//void akgoToStation();
 void reinagoToStation();
 void spinPassportLever();
 void testLineUpAngle();
@@ -56,7 +57,7 @@ int main() {
 
     //registering main functions
     ProteOS::registerFunction("waitForLight()", &waitForLight);
-    ProteOS::registerFunction("goToStation()", &akgoToStation);
+    //ProteOS::registerFunction("goToStation()", &akgoToStation);
     ProteOS::registerFunction("gotostationR()",&reinagoToStation);
     ProteOS::registerFunction("spinPassportLever()", &spinPassportLever);
     ProteOS::registerFunction("runCheckpoint()", &runCheckpoint);
@@ -93,7 +94,7 @@ void waitForLight() {
 }
 
 //function to help bot navigate and also read the data needed
-void akgoToStation() {
+/*void akgoToStation() {
 
     //open up SD File for writing
     FEHFile *fptr = SD.FOpen("OUTPUTSD.txt","w");
@@ -104,10 +105,13 @@ void akgoToStation() {
     // turn southwest to back up to ramp
     // line up with the center of the ramp
     //SPOT A
-    check_heading(225);
+    check_heading(45);
+    Motors::drive(6);
     Sleep(1.0);
-    Motors::drive(10);
-    check_x(rampX, PLUS);
+    
+    check_x(spotA, PLUS);
+    check_heading(90);
+    Sleep(1.0);
 
     SD.FPrintf(fptr, "Actual A Position: %f %f %f \n", RPS.X(), RPS.Y(),RPS.Heading());
     Debugger::printNextLine("goin up da ramp");
@@ -115,8 +119,6 @@ void akgoToStation() {
     // SPOT B
     //turn north
     // go up ramp
-    check_heading(90);
-    Sleep(1.0);
     Motors::drive(20);
     check_y(rampTopY, PLUS);
     SD.FPrintf(fptr, "Actual B Position: %f %f %f \n", RPS.X(), RPS.Y(),RPS.Heading());
@@ -151,7 +153,7 @@ void akgoToStation() {
     Sleep(1.0);
     SD.FPrintf(fptr, "Actual E Position: %f %f %f \n", RPS.X(), RPS.Y(),RPS.Heading());
     
-}
+}*/
 
 void reinagoToStation() {
 
@@ -217,20 +219,20 @@ void rotateServoSlow(float start, float end) {
 void spinPassportLever() {
     Debugger::printNextLine("TIME TO SPIN DA LEVER");
     // Rotate servo to under lever
-    r2d2Servo.SetDegree(45);
+    r2d2Servo.SetDegree(135);
     
     // Back up into lever
     Motors::drive(-2);
 
     // Spin servo to flip lever
-    rotateServoSlow(45, 170);
+    rotateServoSlow(135, 0);
     Sleep(2);
 
     // Spin servo other way to un-flip lever
-    rotateServoSlow(170, 45);
+    rotateServoSlow(0, 135);
 
     // Drive away
-    Motors::drive(4);
+    Motors::drive(2);
 
     // Reset servo angle
     r2d2Servo.SetDegree(90);

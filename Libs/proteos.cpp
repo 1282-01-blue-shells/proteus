@@ -291,7 +291,6 @@ void ProteOS::waitForInput() {
             }
             if (y > 140 && x > 80 && x < 240) {
                 RPS.InitializeTouchMenu();
-                Sleep(2.0);
                 uiState = UIState::UsingRPSConnected;
             }
             break;

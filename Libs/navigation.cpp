@@ -156,7 +156,7 @@ void Motors::turn(float degrees) {
         rightPower *= -1;
     }
 
-    int totalDistanceInCounts = (int) (absVal(degrees) * ENCODER_COUNTS_PER_DEGREE);
+    int totalDistanceInCounts = (int) (abs(degrees) * ENCODER_COUNTS_PER_DEGREE);
 
     doMovementWithSlowdown(leftPower, rightPower, totalDistanceInCounts);
 }
@@ -173,7 +173,7 @@ void Motors::drive(float distance) {
         rightPower *= -1;
     }
 
-    int totalDistanceInCounts = (int) (absVal(distance) * ENCODER_COUNTS_PER_INCH);
+    int totalDistanceInCounts = (int) (abs(distance) * ENCODER_COUNTS_PER_INCH);
 
     doMovementWithSlowdown(leftPower, rightPower, totalDistanceInCounts);
 }
@@ -404,11 +404,7 @@ int Motors::driveToBackwards(float targetX, float targetY, float targetH) {
 float limitAngle(float a) {
     while (a < -180) a += 360;
     while (a >= 180) a -= 360;
-}
-
-// "error-type" "internal error" hey compiler how about you shut th
-float absVal(float a) {
-    return (a < 0) ? -a : a;
+    return a;
 }
 
 // turns the robot to the specified heading using RPS
@@ -417,12 +413,12 @@ void Motors::lineUpToAngle(float targetH) {
     Debugger::printLine(1, "turning to h = %.1f", targetH);
 
     float currentH = RPS.Heading();
-    while (absVal(limitAngle(targetH - currentH)) > ERROR_THRESHOLD_DEGREES) {
+    while (abs(limitAngle(targetH - currentH)) > ERROR_THRESHOLD_DEGREES) {
 
         Debugger::printLine(2, "targ: %.1f curr: %.1f", targetH, currentH);
         Debugger::printLine(3, "error: %.1f", limitAngle(targetH - currentH));
 
-        Motors::turn(-limitAngle(targetH - currentH));
+        Motors::turn(-limitAngle(targetH - currentH) + ((targetH > currentH) ? -3 : 3));
         Debugger::sleep(rpsDelay);
         currentH = RPS.Heading();
     }
@@ -443,10 +439,10 @@ void Motors::lineUpToXCoordinate(float x) {
 
     // repeat until close to the target position
     float currentX = RPS.X();
-    while (absVal(targetX - currentX) > ERROR_THRESHOLD_INCHES) {
+    while (abs(targetX - currentX) > ERROR_THRESHOLD_INCHES) {
 
         Debugger::printLine(2, "targ: %.1f curr: %.1f", targetX, currentX);
-        Debugger::printLine(3, "error: %.1f", absVal(targetX - currentX));
+        Debugger::printLine(3, "error: %.1f", abs(targetX - currentX));
 
         // drive towards the target position (accounting for the robot's facing direction)
         Motors::drive((targetX - currentX) / cos(RPS.Heading() * DEG_TO_RAD));
@@ -458,7 +454,7 @@ void Motors::lineUpToXCoordinate(float x) {
     }
 
     Debugger::printLine(2, "targ: %.1f curr: %.1f", targetX, currentX);
-    Debugger::printLine(3, "error: %.1f", absVal(targetX - currentX));
+    Debugger::printLine(3, "error: %.1f", abs(targetX - currentX));
     Debugger::printLine(4, "Finished");
 }
 
@@ -472,11 +468,11 @@ void Motors::lineUpToYCoordinate(float y) {
     float targetY = y + QRCODE_OFFSET * sin(RPS.Heading() * DEG_TO_RAD);
 
     // repeat until close to the target position
-    float currentY = RPS.X();
-    while (absVal(targetY - currentY) > ERROR_THRESHOLD_INCHES) {
+    float currentY = RPS.Y();
+    while (abs(targetY - currentY) > ERROR_THRESHOLD_INCHES) {
 
         Debugger::printLine(2, "targ: %.1f curr: %.1f", targetY, currentY);
-        Debugger::printLine(3, "error: %.1f", absVal(targetY - currentY));
+        Debugger::printLine(3, "error: %.1f", abs(targetY - currentY));
 
         // drive towards the target position (accounting for the robot's facing direction)
         Motors::drive((targetY - currentY) / sin(RPS.Heading() * DEG_TO_RAD));
@@ -488,6 +484,6 @@ void Motors::lineUpToYCoordinate(float y) {
     }
 
     Debugger::printLine(2, "targ: %.1f curr: %.1f", targetY, currentY);
-    Debugger::printLine(3, "error: %.1f", absVal(targetY - currentY));
+    Debugger::printLine(3, "error: %.1f", abs(targetY - currentY));
     Debugger::printLine(4, "Finished");
 }
