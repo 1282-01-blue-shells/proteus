@@ -14,7 +14,7 @@ FEHServo r2d2Servo(FEHServo::Servo1);
 float rampX = 30;
 float rampTopY = 42;
 float escapeToX = 22;
-float passportLeverY = 60.5;
+float passportLeverY = 60;
 float passportLeverX = 26;
 float spotA = 30;
 
@@ -184,9 +184,11 @@ void reinagoToStation() {
 
     // back up to be in line with the passport lever
     Motors::lineUpToAngle(270);
+    Motors::errorThresholdInches = 0.05f;
     Motors::lineUpToYCoordinate(passportLeverY);
 
     // turn to align back with station
+    //Motors::errorThresholdDegrees = 0.25;
     Motors::lineUpToAngle(180);
 
     // back up
@@ -224,12 +226,25 @@ void spinPassportLever() {
     // Back up into lever
     Motors::drive(-2);
 
+    /* for (int i = 0; i < 3; i++) {
+        Motors::lMotor.SetPercent(-50);
+        Debugger::sleep(0.25);
+        Motors::lMotor.Stop();
+        Debugger::sleep(0.25);
+        Motors::rMotor.SetPercent(-50);
+        Debugger::sleep(0.25);
+        Motors::rMotor.Stop();
+        Debugger::sleep(0.25);
+    } */
+
     // Spin servo to flip lever
     rotateServoSlow(135, 0);
     Sleep(2);
 
     // Spin servo other way to un-flip lever
-    rotateServoSlow(0, 135);
+    rotateServoSlow(0, 45);
+    Motors::drive(-1);
+    rotateServoSlow(45, 0);
 
     // Drive away
     Motors::drive(2);

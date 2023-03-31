@@ -24,9 +24,9 @@
 #define QRCODE_OFFSET 6.0f
 
 // The maximum acceptable difference in angle while lining up
-#define ERROR_THRESHOLD_DEGREES 0.5f
+#define DEFAULT_ERROR_THRESHOLD_DEGREES 0.5f
 // The maximum acceptable difference in position while lining up
-#define ERROR_THRESHOLD_INCHES 0.2f
+#define DEFAULT_ERROR_THRESHOLD_INCHES 0.1f
 
 class Motors {
 public:
@@ -70,6 +70,8 @@ public:
     // Default: 0.2
     // Recommended: 0.15 - 0.5
     static float movementTimeoutPerInch;
+
+    static float errorThresholdDegrees, errorThresholdInches;
 
     // Motors and encoders. These will be given a value before the program starts, so
     //   constructing your own motor or encoder objects is not necessary.

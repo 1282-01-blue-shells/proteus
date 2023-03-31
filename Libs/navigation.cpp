@@ -72,6 +72,8 @@ int Motors::slowdownStages = 1;
 float Motors::delay = 0.2f;
 float Motors::rpsDelay = 0.3f;
 float Motors::movementTimeoutPerInch = 0.2f;
+float Motors::errorThresholdDegrees = DEFAULT_ERROR_THRESHOLD_DEGREES;
+float Motors::errorThresholdInches = DEFAULT_ERROR_THRESHOLD_INCHES;
 
 /* float Motors::qrCodeX = QRCODE_DEFAULT_X;
 float Motors::qrCodeY = QRCODE_DEFAULT_Y;
@@ -413,7 +415,7 @@ void Motors::lineUpToAngle(float targetH) {
     Debugger::printLine(1, "turning to h = %.1f", targetH);
 
     float currentH = RPS.Heading();
-    while (abs(limitAngle(targetH - currentH)) > ERROR_THRESHOLD_DEGREES) {
+    while (abs(limitAngle(targetH - currentH)) > errorThresholdDegrees) {
 
         Debugger::printLine(2, "targ: %.1f curr: %.1f", targetH, currentH);
         Debugger::printLine(3, "error: %.1f", limitAngle(targetH - currentH));
@@ -439,7 +441,7 @@ void Motors::lineUpToXCoordinate(float x) {
 
     // repeat until close to the target position
     float currentX = RPS.X();
-    while (abs(targetX - currentX) > ERROR_THRESHOLD_INCHES) {
+    while (abs(targetX - currentX) > errorThresholdInches) {
 
         Debugger::printLine(2, "targ: %.1f curr: %.1f", targetX, currentX);
         Debugger::printLine(3, "error: %.1f", abs(targetX - currentX));
@@ -469,7 +471,7 @@ void Motors::lineUpToYCoordinate(float y) {
 
     // repeat until close to the target position
     float currentY = RPS.Y();
-    while (abs(targetY - currentY) > ERROR_THRESHOLD_INCHES) {
+    while (abs(targetY - currentY) > errorThresholdInches) {
 
         Debugger::printLine(2, "targ: %.1f curr: %.1f", targetY, currentY);
         Debugger::printLine(3, "error: %.1f", abs(targetY - currentY));
