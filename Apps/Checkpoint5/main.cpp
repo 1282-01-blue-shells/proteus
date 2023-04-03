@@ -17,14 +17,16 @@ FEHServo mouthServo(FEHServo::Servo0);
 void waitForLight();
 void gotoluggagedropoff();
 void dropluggage();
+void goToStopButton();
 void runCheckpoint();
 
-float rampstart = 30;
-float ramptop = 42;
-float bluggage = 22;
-float atluggage = 40;
+float rampX = 30;
+float rampStartY = 12;
+float rampTopY = 42;
+float luggageX = 22;
+float luggageY = 44;
 
-int main (){
+int main() {
     mouthServo.SetMin(500);
     mouthServo.SetMax(2390);
     
@@ -32,9 +34,10 @@ int main (){
 
     //registering main functions
     ProteOS::registerFunction("waitForLight()", &waitForLight);
-    ProteOS::registerFunction("gotoluggagedropoff()",&gotoluggagedropoff);
-    ProteOS::registerFunction("dropluggage()",&dropluggage);
-    ProteOS::registerFunction("runcheckpoint()",&runCheckpoint);
+    ProteOS::registerFunction("gotoluggagedropoff()", &gotoluggagedropoff);
+    ProteOS::registerFunction("dropluggage()", &dropluggage);
+    ProteOS::registerFunction("runCheckpoint()", &runCheckpoint);
+    ProteOS::registerFunction("goToStopButton()", &goToStopButton);
 
     ProteOS::run();
 
@@ -44,7 +47,7 @@ void runCheckpoint() {
     waitForLight();
     gotoluggagedropoff();
     dropluggage();
-
+    goToStopButton();
 }
 
 void waitForLight() {
@@ -64,38 +67,40 @@ void waitForLight() {
     Debugger::setFontColor();
 }
 
-void gotoluggagedropoff () {
+void gotoluggagedropoff() {
     // line up with the center of the ramp
     Debugger::printNextLine("headin to da ramp");
 
-    Motors::maxPower = 20;
+    // Motors::maxPower = 20;
 
     // Starting at the light.
     // turn southwest to back up to ramp
     Motors::lineUpToAngle(225);
 
     // line up with the center of the ramp
-    Motors::lineUpToXCoordinate(rampstart);
+    Motors::lineUpToXCoordinate(rampX);
 
     Debugger::printNextLine("goin up da ramp");
 
     // turn north
     Motors::lineUpToAngle(90);
 
-    Motors::maxPower = 40;
+    // Motors::maxPower = 40;
 
     // go up ramp
-    Motors::lineUpToYCoordinate(ramptop);
+    Motors::lineUpToYCoordinate(rampTopY);
 
-    Motors::maxPower = 20;
+    // Motors::maxPower = 20;
 
-    //before lining up with luggage carrier
+    Debugger::printNextLine("escapin da corner");
+
+    // escape corner and line up with luggage
     Motors::lineUpToAngle(135);
-    Motors::lineUpToXCoordinate(bluggage);
+    Motors::lineUpToXCoordinate(luggageX);
 
-    //moving towards luggage carrier
+    // move towards luggage
     Motors::lineUpToAngle(270);
-    Motors::lineUpToYCoordinate(atluggage);
+    Motors::lineUpToYCoordinate(luggageY);
 
 }
 
@@ -105,3 +110,21 @@ void dropluggage(){
     mouthServo.SetDegree(90);
 }
 
+void goToStopButton() {
+    // go to top of ramp
+    Motors::lineUpToAngle(180);
+    Motors::lineUpToXCoordinate(rampX);
+
+    // go down ramp
+    Motors::lineUpToAngle(90);
+    Motors::lineUpToYCoordinate(rampStartY);
+    
+    // line up with button
+    Motors::lineUpToAngle(180);
+    Motors::lineUpToXCoordinate(24);
+    Motors::lineUpToAngle(135);
+
+    // push button
+    Motors::drive(-10);
+
+}
