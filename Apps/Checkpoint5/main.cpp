@@ -30,7 +30,7 @@ int main() {
     mouthServo.SetMin(500);
     mouthServo.SetMax(2390);
     
-    mouthServo.SetDegree(90);
+    mouthServo.SetDegree(60);
 
     //registering main functions
     ProteOS::registerFunction("waitForLight()", &waitForLight);
@@ -107,7 +107,7 @@ void gotoluggagedropoff() {
 void dropluggage(){
     mouthServo.SetDegree(125); //position lever down to drop luggage
     Debugger::sleep(2.0f);
-    mouthServo.SetDegree(90);
+    mouthServo.SetDegree(60);
 }
 
 void goToStopButton() {

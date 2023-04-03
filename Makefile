@@ -190,6 +190,9 @@ C_STD := 17
 
 # :: [text]
 # The list of arguments that should be passed to all compiler invocations.
+#
+# -O0 is necessary because *FEHXBee.cpp* has undefined behavior that manifests into an RPS-killing
+# bug when optimizations are enabled.
 COMMON_FLAGS := $(INCFLAGS) \
                 -O0 \
                 -MMD \
