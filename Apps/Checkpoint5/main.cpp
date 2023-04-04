@@ -23,7 +23,7 @@ void runCheckpoint();
 float rampX = 30;
 float rampStartY = 12;
 float rampTopY = 42;
-float luggageX = 22;
+float luggageX = 20;
 float luggageY = 44;
 
 int main() {
