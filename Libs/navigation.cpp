@@ -105,6 +105,7 @@ void Motors::doMovementWithSlowdown(float leftPower, float rightPower, int dista
     //   and 15 seconds, and then start a motor movement, it will overflow and the
     //   timeout will never happen
     float timeoutTime = (float) TimeNow() + movementTimeoutPerInch * distanceInCounts / ENCODER_COUNTS_PER_INCH;
+    float secondTimeoutTime = TimeNow() + 10;
 
     // The motors will slow down when there are this many counts until the end
     float slowdownDistance = maxPower * SLOWDOWN_THRESHOLD_COEFFICIENT;
@@ -120,7 +121,7 @@ void Motors::doMovementWithSlowdown(float leftPower, float rightPower, int dista
         // Wait until the appropriate distance
         while ((lEncoder.Counts() + rEncoder.Counts()) / 2 < distanceInCounts - (int)slowdownDistance) {
             Debugger::abortCheck();
-            if (TimeNow() > timeoutTime) break;
+            if (TimeNow() > timeoutTime || TimeNow() > secondTimeoutTime) break;
         }
 
         // Robot should now slow down
