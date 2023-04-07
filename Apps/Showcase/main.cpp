@@ -10,6 +10,7 @@ AnalogInputPin lightSensor(FEHIO::P0_7);
 FEHServo r2d2Servo(FEHServo::Servo1);
 FEHServo mouthServo(FEHServo::Servo0);
 
+void runCourse();
 void waitForLight();
 void goToLuggageDropoff();
 void dropLuggage();
@@ -32,6 +33,10 @@ int main() {
     r2d2Servo.SetMax(2315);
     mouthServo.SetDegree(60);
     r2d2Servo.SetDegree(90);
+
+    ProteOS::registerFunction("runCourse()", &runCourse);
+
+    ProteOS::run();
 }
 
 void runCourse() {
@@ -46,6 +51,16 @@ void runCourse() {
     goToLevers();
     flipLever();
     hitStopButton();
+}
+
+void precise() {
+    Motors::errorThresholdDegrees = 0.5f;
+    Motors::errorThresholdInches = 0.1f;
+}
+
+void fast() {
+    Motors::errorThresholdDegrees = 1.5;
+    Motors::errorThresholdInches = 0.5f;
 }
 
 void waitForLight() {
@@ -74,7 +89,7 @@ void goToLuggageDropoff() {
 
     Debugger::printNextLine("goin up da ramp");
 
-    // Motors::maxPower = 20;
+    fast();
 
     // Starting at the light.
     // turn southwest to back up to ramp
@@ -92,6 +107,8 @@ void goToLuggageDropoff() {
     Motors::lineUpToYCoordinate(42);
 
     // Motors::maxPower = 20;
+
+    precise();
 
     // escape corner and line up with luggage
     Motors::turn(-45);
@@ -148,11 +165,11 @@ void pressKioskButton() {
 
     // go to the x coordinate of the intended button
     Motors::turn(90);
-    Motors::lineUpToXCoordinate(17.5 + 4.5*buttonNumber);
+    Motors::lineUpToXCoordinate(19 + 5*buttonNumber);
     Motors::lineUpToAngle(90);
 
     // Move mouth down so it can hit the button
-    mouthServo.SetDegree(165);
+    mouthServo.SetDegree(150);
     // hit the button
     Motors::drive(4);
     // back up again
@@ -205,8 +222,8 @@ void spinPassportLever() {
 
     // Spin servo other way to un-flip lever
     rotateR2D2ServoSlow(0, 45);
-    Motors::drive(-1);
-    rotateR2D2ServoSlow(45, 0);
+    // Motors::drive(-1);
+    // rotateR2D2ServoSlow(45, 0);
 
     // Drive away
     Motors::drive(2);
@@ -218,6 +235,8 @@ void spinPassportLever() {
 void goBackDownTheRamp() {
 
     Debugger::printNextLine("aight I'm leaving");
+
+    fast();
 
     // leave the passport station
     Motors::lineUpToXCoordinate(18);
@@ -236,8 +255,11 @@ void goBackDownTheRamp() {
 }
 
 void goToLevers() {
+
+    precise();
+
     Motors::lineUpToAngle(135);
-    Motors::lineUpToYCoordinate(22);
+    Motors::lineUpToYCoordinate(24);
 
     // turn around so it wont't hit the wall
     Motors::turn (-180);
@@ -271,11 +293,14 @@ void flipLever() {
 
 void hitStopButton() {
     Debugger::printNextLine("SO LONG YOU DUSTY BITCH!");
+    Debugger::printNextLine("HAHAH!!!");
 
     // leave rps dead zone
     Motors::drive(6);
     Motors::turn(45);
     Motors::drive(6);
+
+    fast();
 
     // get lined up and all
     Motors::lineUpToXCoordinate(24);
