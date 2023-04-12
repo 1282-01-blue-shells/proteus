@@ -10,6 +10,8 @@ AnalogInputPin lightSensor(FEHIO::P0_7);
 FEHServo r2d2Servo(FEHServo::Servo1);
 FEHServo mouthServo(FEHServo::Servo0);
 
+float leverCorrection = 0;
+
 void runCourse();
 void waitForLight();
 void goToLuggageDropoff();
@@ -34,7 +36,8 @@ int main() {
     mouthServo.SetDegree(60);
     r2d2Servo.SetDegree(90);
     
-    ProteOS::registerVariable("maxPower", &Motors::maxPower);
+    ProteOS::registerVariable("motorPower", &Motors::maxPower);
+    ProteOS::registerVariable("leverCorrection", &leverCorrection);
 
     ProteOS::registerFunction("runCourse()", &runCourse);
 
@@ -260,10 +263,10 @@ void goBackDownTheRamp() {
     Motors::drive(12);
     Motors::turn(-90);
     Motors::lineUpToXCoordinate(6);
-    Motors::lineUpToAngle(270);
+    Motors::lineUpToAngle(90);
 
     //precise();
-    Motors::lineUpToYCoordinate(22);
+    Motors::lineUpToYCoordinate(20);
     Motors::lineUpToAngle(0);
 }
 
@@ -287,9 +290,17 @@ void flipLever() {
     int leverNumber = RPS.GetCorrectLever();
     Debugger::printNextLine("It's leverin time (%i)", leverNumber);
     // Go to the intended lever
-    Motors::lineUpToXCoordinate(12 - 3*leverNumber);
+    /* Motors::lineUpToXCoordinate(12 - 3*leverNumber);
     // Turn to face it
-    Motors::turn(90);
+    Motors::turn(90); */
+
+    // NAH We overshootin dis b
+    Motors::lineUpToXCoordinate(12 - 3*leverNumber + 2);
+    Motors::turn(45);
+    Motors::drive(2.82);
+    Motors::turn(45);
+    
+    Motors::drive(leverCorrection);
 
     // Hit it down
     mouthServo.SetDegree(55);
