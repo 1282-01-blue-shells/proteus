@@ -155,7 +155,7 @@ int getLightColor() {
         return 1;
     } else {
         Debugger::setFontColor(0x00FFFF);
-        Debugger::printNextLine("Light is blue i think");
+        Debugger::printNextLine("Light is Blue");
         Debugger::setFontColor();
         return 0;
     }
@@ -239,7 +239,7 @@ void spinPassportLever() {
 
 void goBackDownTheRamp() {
 
-    Debugger::printNextLine("aight I'm leaving");
+    Debugger::printNextLine("Zoom!");
 
     fast();
 
@@ -259,6 +259,15 @@ void goBackDownTheRamp() {
     Motors::lineUpToYCoordinate(12); */
 
     Motors::drive(12);
+    Motors::turn(-75);
+    Motors::lineUpToXCoordinate(6);
+    Motors::lineUpToAngle(270);
+
+    //precise();
+    Motors::lineUpToYCoordinate(20);
+    Motors::lineUpToAngle(270);
+
+    /*Motors::drive(12);
     Motors::turn(-90);
     Motors::drive(12);
     Motors::turn(-90);
@@ -267,7 +276,7 @@ void goBackDownTheRamp() {
 
     //precise();
     Motors::lineUpToYCoordinate(20);
-    Motors::lineUpToAngle(0);
+    Motors::lineUpToAngle(0);*/
 }
 
 void goToLevers() {
@@ -294,12 +303,23 @@ void flipLever() {
     // Turn to face it
     Motors::turn(90); */
 
-    // NAH We overshootin dis b
-    Motors::lineUpToXCoordinate(12 - 3*leverNumber + 2);
+    // Aligning with specific lever
+    /* Motors::lineUpToXCoordinate(12 - 3*leverNumber + 2);
     Motors::turn(45);
     Motors::drive(2.82);
-    Motors::turn(45);
-    
+    Motors::turn(45);*/
+
+    // separate function to hardcode directions for lever alignment
+    if (leverNumber == 1) {
+        Motors::turn(0);
+        Motors::drive(2);
+    } else if (leverNumber == 2) {
+        Motors::turn(0);
+        Motors::drive(2);
+    } else if (leverNumber == 3) {
+        Motors::turn(0);
+        Motors::drive(2);
+    }
     Motors::drive(leverCorrection);
 
     // Hit it down
@@ -320,7 +340,7 @@ void flipLever() {
 }
 
 void hitStopButton() {
-    Debugger::printNextLine("SO LONG YOU DUSTY BITCH!");
+    Debugger::printNextLine("Goodbye Cruel World");
     Debugger::printNextLine("HAHAH!!!");
 
     // leave rps dead zone
