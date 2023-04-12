@@ -33,6 +33,8 @@ int main() {
     r2d2Servo.SetMax(2315);
     mouthServo.SetDegree(60);
     r2d2Servo.SetDegree(90);
+    
+    ProteOS::registerVariable("maxPower", &Motors::maxPower);
 
     ProteOS::registerFunction("runCourse()", &runCourse);
 
@@ -60,7 +62,7 @@ void precise() {
 
 void fast() {
     Motors::errorThresholdDegrees = 1.5;
-    Motors::errorThresholdInches = 0.5f;
+    Motors::errorThresholdInches = 0.7f;
 }
 
 void waitForLight() {
@@ -93,7 +95,7 @@ void goToLuggageDropoff() {
 
     // Starting at the light.
     // turn southwest to back up to ramp
-    Motors::lineUpToAngle(225);
+    // Motors::lineUpToAngle(225);
 
     // line up with the center of the ramp
     Motors::lineUpToXCoordinate(30);
@@ -196,14 +198,14 @@ void rotateR2D2ServoSlow(float start, float end) {
         while (degree <= end) {
             r2d2Servo.SetDegree(degree);
             degree++;
-            Debugger::sleep(0.02f);
+            Debugger::sleep(0.01f);
         }
     } else {
         // going down
         while (degree >= end) {
             r2d2Servo.SetDegree(degree);
             degree--;
-            Debugger::sleep(0.02f);
+            Debugger::sleep(0.01f);
         }
     }
 }
@@ -239,7 +241,7 @@ void goBackDownTheRamp() {
     fast();
 
     // leave the passport station
-    Motors::lineUpToXCoordinate(18);
+    /* Motors::lineUpToXCoordinate(18);
 
     // go down to somewhere in the middle of the top section
     Motors::lineUpToAngle(270);
@@ -251,19 +253,34 @@ void goBackDownTheRamp() {
 
     // down the ramp
     Motors::lineUpToAngle(90);
-    Motors::lineUpToYCoordinate(12);
+    Motors::lineUpToYCoordinate(12); */
+
+    Motors::drive(12);
+    Motors::turn(-90);
+    Motors::drive(12);
+    Motors::turn(-90);
+    Motors::lineUpToXCoordinate(6);
+    Motors::lineUpToAngle(270);
+
+    //precise();
+    Motors::lineUpToYCoordinate(22);
+    Motors::lineUpToAngle(0);
 }
 
 void goToLevers() {
 
-    precise();
+    // precise();
 
-    Motors::lineUpToAngle(135);
-    Motors::lineUpToYCoordinate(24);
+    /* Motors::lineUpToAngle(135);
+    Motors::lineUpToYCoordinate(23);
+
+    // Escape the ramp
+    Motors::lineUpToAngle(180);
+    Motors::drive(4);
 
     // turn around so it wont't hit the wall
     Motors::turn (-180);
-    Motors::lineUpToAngle(0);
+    Motors::lineUpToAngle(0); */
 }
 
 void flipLever() {
