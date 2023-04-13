@@ -19,7 +19,7 @@ static float initiallever = 10;
 static float overshoot = 2;
 static float distancetolever = -2.5;
 static float otherLeverCorrection = -2;
-static bool doWillThing;
+static bool doWillThing = false;
 
 void runCourse();
 void waitForLight();
@@ -35,6 +35,8 @@ void flipLever();
 void hitStopButton();
 
 int getLightColor();
+
+void OLD_runCourse();
 
 
 int main() {
@@ -58,6 +60,7 @@ int main() {
     ProteOS::registerVariable("doWillThing", &doWillThing);
 
     ProteOS::registerFunction("runCourse()", &runCourse);
+    ProteOS::registerFunction("OLD_runCourse()", &OLD_runCourse);
 
     ProteOS::run();
 }
@@ -139,7 +142,7 @@ void goToLuggageDropoff() {
 
     // move towards luggage
     Motors::lineUpToAngle(270);
-    Motors::lineUpToYCoordinate(44);
+    Motors::lineUpToYCoordinate(45);
 }
 
 void dropLuggage() {
@@ -152,7 +155,7 @@ void dropLuggage() {
 void goToLight() {
 
     // back up
-    Motors::drive(-1);
+    Motors::drive(-3);
 
     // turn to the side
     Motors::lineUpToAngle(315);
@@ -162,7 +165,7 @@ void goToLight() {
 
     // go to the light
     Motors::lineUpToAngle(270);
-    Motors::lineUpToYCoordinate(63);
+    Motors::lineUpToYCoordinate(64);
 }
 
 int getLightColor() {
@@ -195,7 +198,8 @@ int getLightColor() {
 void pressKioskButton() {
     int buttonNumber = getLightColor();
     // drive away from wall
-    Motors::drive(6);
+    //Motors::drive(6);
+    Motors::lineUpToYCoordinate(56);
 
     Debugger::printNextLine("Button Time!!!"); // ln 6
 
@@ -250,6 +254,7 @@ void spinPassportLever() {
     if (doPassportLeverCorrection) {
         Motors::turn((RPS.Y() - 60) / 6 * 180 / 3.14);
     }
+    Motors::drive(-2);
     
     // Rotate servo to under lever
     r2d2Servo.SetDegree(135);
@@ -356,7 +361,7 @@ void flipLever() {
     } else {
         Motors::lineUpToXCoordinate(12 - 3*leverNumber + 2);
         Motors::turn(45);
-        Motors::drive(2.82);
+        Motors::drive(-2.82);
         Motors::turn(45);
         
         Motors::drive(leverCorrection);
