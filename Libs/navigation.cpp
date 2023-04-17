@@ -25,6 +25,9 @@ float Motors::rpsDelay = 0.3f;
 float Motors::movementTimeoutPerInch = 0.2f;
 float Motors::errorThresholdDegrees = DEFAULT_ERROR_THRESHOLD_DEGREES;
 float Motors::errorThresholdInches = DEFAULT_ERROR_THRESHOLD_INCHES;
+float Motors::tempX = 0;
+float Motors::tempY = 0;
+float Motors::tempH = 0;
 
 /* float Motors::qrCodeX = QRCODE_DEFAULT_X;
 float Motors::qrCodeY = QRCODE_DEFAULT_Y;
@@ -37,6 +40,13 @@ DigitalEncoder Motors::rEncoder(RIGHT_ENCODER_PIN);
 
 
 // Function definitions
+
+// helper function, wraps angle around to be between -180 and 180
+float limitAngle(float a) {
+    while (a < -180) a += 360;
+    while (a >= 180) a -= 360;
+    return a;
+}
 
 void Motors::calculateMotorPower(float* leftPower, float* rightPower) {
     *leftPower = maxPower;
@@ -385,12 +395,7 @@ int Motors::driveToBackwards(float targetX, float targetY, float targetH) {
     return 0;
 } */
 
-// helper function, wraps angle around to be between -180 and 180
-float limitAngle(float a) {
-    while (a < -180) a += 360;
-    while (a >= 180) a -= 360;
-    return a;
-}
+
 
 // turns the robot to the specified heading using RPS
 void Motors::lineUpToAngle(float targetH) {

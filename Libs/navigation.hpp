@@ -134,8 +134,8 @@ public:
     static void lineUpToXCoordinate(float x);
     static void lineUpToYCoordinate(float y);
 
-    static void Motors::lineUpToXCoordinateMaintainHeading(float x, float h);
-    static void Motors::lineUpToYCoordinateMaintainHeading(float y, float h);
+    static void lineUpToXCoordinateMaintainHeading(float x, float h);
+    static void lineUpToYCoordinateMaintainHeading(float y, float h);
 
 private:
     static float tempX, tempY, tempH;
