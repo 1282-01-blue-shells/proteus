@@ -13,13 +13,16 @@ FEHServo r2d2Servo(FEHServo::Servo1);
 FEHServo mouthServo(FEHServo::Servo0);
 
 static float leverCorrection = 0;
-static float leverAngles[3] = { -30.f, -10.f, 20.f };
 static bool doPassportLeverCorrection = true;
 static float initiallever = 10;
-static float overshoot = 2;
+//static float overshoot = 2;
 static float distancetolever = -2.5;
-static float otherLeverCorrection = -4;
-static bool doWillThing = false;
+static float otherLeverCorrection = -2;
+float somewhereDist = 14;
+float awayFromKioskDist = 7.5f;
+float initialLeverDist = 10;
+float overshoot = 2;
+float distToLever = -2.5;
 
 void runCourse();
 void waitForLight();
@@ -36,8 +39,6 @@ void hitStopButton();
 
 int getLightColor();
 
-void OLD_runCourse();
-
 
 int main() {
     mouthServo.SetMin(500);
@@ -49,33 +50,25 @@ int main() {
     
     ProteOS::registerVariable("motorPower", &Motors::maxPower);
     ProteOS::registerVariable("leverCorrection", &leverCorrection);
-    ProteOS::registerVariable("leverAngle0", &leverAngles[0]);
-    ProteOS::registerVariable("leverAngle1", &leverAngles[1]);
-    ProteOS::registerVariable("leverAngle2", &leverAngles[2]);
-    /* ProteOS::registerVariable("leverDist0", &leverDists[0]);
-    ProteOS::registerVariable("leverDist1", &leverDists[1]);
-    ProteOS::registerVariable("leverDist2", &leverDists[2]); */
     ProteOS::registerVariable("doPassportLeverCorrection", &doPassportLeverCorrection);
     ProteOS::registerVariable("otherLeverCorrection", &otherLeverCorrection);
-    ProteOS::registerVariable("doWillThing", &doWillThing);
 
     ProteOS::registerFunction("runCourse()", &runCourse);
-    ProteOS::registerFunction("OLD_runCourse()", &OLD_runCourse);
 
     ProteOS::run();
 }
 
 void runCourse() {
     waitForLight();
+    goToLevers();
+    flipLever();
     goToLuggageDropoff();
-    dropLuggage();
+    //dropLuggage();
     goToLight();
     pressKioskButton();
     goToPassportStation();
     spinPassportLever();
     goBackDownTheRamp();
-    goToLevers();
-    flipLever();
     hitStopButton();
 }
 
@@ -127,21 +120,32 @@ void goToLuggageDropoff() {
     // turn north
     Motors::lineUpToAngle(90);
 
-tryRamp:
+    int fails = 0;
+    tryRamp:
     Motors::drive(24);
     if (RPS.Heading() < 80 || RPS.Heading() > 100) {
+        fails++;
         Motors::drive(-12);
-        goto tryRamp;
+        if (fails < 5) {
+            goto tryRamp;
+        }
+        Motors::drive(-20);
+        Motors::drive(4);
+        Motors::lineUpToAngle(135);
+        Motors::lineUpToYCoordinate(12);
+        Motors::lineUpToAngle(180);
+        Motors::lineUpToXCoordinate(24);
+        Motors::lineUpToAngle(135);
+        Motors::drive(-12);
     }
-    
 
     // go up ramp
-    Motors::lineUpToYCoordinate(42);
+    //Motors::lineUpToYCoordinate(42);
 
     precise();
 
     // escape corner and line up with luggage
-    Motors::turn(-60);
+    Motors::turn(-45);
     Motors::lineUpToXCoordinate(20);
 
     // move towards luggage
@@ -342,11 +346,31 @@ void goToLevers() {
     // turn around so it wont't hit the wall
     Motors::turn (-180);
     Motors::lineUpToAngle(0); */
+     // turn towards kiosk kinda
+    Motors::turn(-90);
+    // go somewhere idk
+    Motors::drive(somewhereDist);
+    // turn to back up into the kiosk
+    Motors::turn(225);
+
+    // back up into kiosk
+    Motors::start(false);
+    Debugger::sleep(2);
+    Motors::stop();
+
+    // drive away from kiosk
+    Motors::drive(awayFromKioskDist);
+    // turn to back up to levers
+    Motors::turn(-90);
+
+    Motors::start(false);
+    Debugger::sleep(3);
+    Motors::stop();
 }
 
 void flipLever() {
-    int leverNumber = RPS.GetCorrectLever();
-    Debugger::printNextLine("It's leverin time (%i)", leverNumber);
+    int correctLever = RPS.GetCorrectLever();
+    Debugger::printNextLine("It's leverin time (%i)", correctLever);
     // Go to the intended lever
     /* Motors::lineUpToXCoordinate(12 - 3*leverNumber);
     // Turn to face it
@@ -358,19 +382,7 @@ void flipLever() {
     Motors::drive(2.82);
     Motors::turn(45);*/
 
-    if (doWillThing) {
-        const float angle = leverAngles[leverNumber];
-        Motors::turn(angle);
-        Motors::drive(4.f/std::tan(std::abs(angle)) + leverCorrection);
-    } else {
-        Motors::lineUpToXCoordinate(12 - 3*leverNumber + 2);
-        Motors::turn(45);
-        Motors::drive(-2.82);
-        Motors::turn(45);
-        
-        Motors::drive(leverCorrection);
-    }
-
+    
     //BACK UP CODE
     /*
     Motors::turn(-90); //code for robot to turn to face so back is to wall
@@ -383,6 +395,15 @@ void flipLever() {
     Motors::drive(-1.41*overshoot);
     Motors::turn(45); // rest of the way
     Motors::drive(overshoot + distToLever);*/
+
+    Debugger::printNextLine("Going to lever %i", correctLever);
+    Motors::drive(initialLeverDist + overshoot - 3.5f * correctLever);
+
+    // turn partway to the lever
+    Motors::turn(45);
+    Motors::drive(-1.41*overshoot);
+    Motors::turn(45); // rest of the way
+    Motors::drive(overshoot + distToLever);
 
     // Hit it down
     mouthServo.SetDegree(55);
@@ -399,6 +420,7 @@ void flipLever() {
     Motors::drive(-2);
 
     Motors::turn(-90);
+    Motors::drive(10);
 }
 
 void hitStopButton() {
