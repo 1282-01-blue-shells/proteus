@@ -122,37 +122,41 @@ void goToLuggageDropoff() {
     // Motors::lineUpToAngle(225);
 
     // line up with the center of the ramp
-    Motors::lineUpToXCoordinate(30);
+    //Motors::lineUpToXCoordinate(30);
+    Motors::lineUpToXCoordinateMaintainHeading(30, 225);
 
     // turn north
-    Motors::lineUpToAngle(90);
+    /* Motors::lineUpToAngle(90);
 
 tryRamp:
     Motors::drive(24);
     if (RPS.Heading() < 80 || RPS.Heading() > 100) {
         Motors::drive(-12);
         goto tryRamp;
-    }
+    } */
     
 
     // go up ramp
-    Motors::lineUpToYCoordinate(42);
+    //Motors::lineUpToYCoordinate(42);
+    Motors::lineUpToYCoordinateMaintainHeading(42, 90);
 
-    precise();
+    //precise();
 
     // escape corner and line up with luggage
-    Motors::turn(-60);
-    Motors::lineUpToXCoordinate(20);
+    //Motors::turn(-60);
+    //Motors::lineUpToXCoordinate(20);
+    Motors::lineUpToXCoordinateMaintainHeading(20, 150);
 
     // move towards luggage
-    Motors::lineUpToAngle(270);
-    Motors::lineUpToYCoordinate(45);
+    //Motors::lineUpToAngle(270);
+    //Motors::lineUpToYCoordinate(45);
+    Motors::lineUpToYCoordinateMaintainHeading(45, 270);
 }
 
 void dropLuggage() {
     Debugger::printNextLine("BYE BYE LUGGAGE");
     mouthServo.SetDegree(125); //position lever down to drop luggage
-    Debugger::sleep(1);
+    Debugger::sleep(0.5f);
     mouthServo.SetDegree(60);
 }
 
@@ -161,15 +165,19 @@ void goToLight() {
     // back up
     Motors::drive(-3);
 
+    precise();
+
     // turn to the side
-    Motors::lineUpToAngle(315);
+    //Motors::lineUpToAngle(315);
 
     // back up to be in line with the light
-    Motors::lineUpToXCoordinate(11.5);
+    //Motors::lineUpToXCoordinate(11.5f);
+    Motors::lineUpToXCoordinateMaintainHeading(11.5f, 315);
 
     // go to the light
-    Motors::lineUpToAngle(270);
-    Motors::lineUpToYCoordinate(64);
+    //Motors::lineUpToAngle(270);
+    //Motors::lineUpToYCoordinate(64);
+    Motors::lineUpToYCoordinateMaintainHeading(64, 270);
 }
 
 int getLightColor() {
@@ -201,6 +209,7 @@ int getLightColor() {
 
 void pressKioskButton() {
     int buttonNumber = getLightColor();
+    fast();
     // drive away from wall
     //Motors::drive(6);
     Motors::lineUpToYCoordinate(56);
@@ -222,13 +231,17 @@ void pressKioskButton() {
 
 void goToPassportStation() {
 
+    precise();
+
     // Get lined up vertically
     Motors::turn(-180);
-    Motors::lineUpToYCoordinate(60);
+    //Motors::lineUpToYCoordinate(60);
+    Motors::lineUpToYCoordinateMaintainHeading(60, 270);
 
     // Go to the station
-    Motors::lineUpToAngle(180);
-    Motors::lineUpToXCoordinate(24);
+    //Motors::lineUpToAngle(180);
+    //Motors::lineUpToXCoordinate(24);
+    Motors::lineUpToXCoordinateMaintainHeading(24, 180);
 }
 
 void rotateR2D2ServoSlow(float start, float end) {
@@ -284,7 +297,7 @@ void spinPassportLever() {
 
 void goBackDownTheRamp() {
 
-    Debugger::printNextLine("Zoom!");
+    Debugger::printNextLine("I'm outta here");
 
     fast();
 
@@ -402,7 +415,7 @@ void flipLever() {
 }
 
 void hitStopButton() {
-    Debugger::printNextLine("SO LONG YOU DUSTY BITCH!");
+    Debugger::printNextLine("SO LONG YOU DUSTY ");
 
     // leave rps dead zone
     Motors::drive(6);
@@ -412,9 +425,11 @@ void hitStopButton() {
     fast();
 
     // get lined up and all
-    Motors::lineUpToXCoordinate(24);
-    Motors::lineUpToAngle(90);
-    Motors::lineUpToYCoordinate(14);
+    //Motors::lineUpToXCoordinate(24);
+    Motors::lineUpToXCoordinateMaintainHeading(24, 315);
+    //Motors::lineUpToAngle(90);
+    //Motors::lineUpToYCoordinate(14);
+    Motors::lineUpToYCoordinateMaintainHeading(14, 90);
 
     // Hit da button
     Motors::turn(-45);

@@ -2,6 +2,7 @@
 
 #include "FEHRPS.h"
 #include "FEHUtility.h"
+#include "FEHRandom.h"
 
 #include "math.h"
 
@@ -12,56 +13,6 @@
 
 #define DEG_TO_RAD (M_PI / 180)
 #define RAD_TO_DEG (180 / M_PI)
-
-// Lord help me    // spoiler alert: he did not help me
-/* class Vector2 {
-public:
-    float x, y;
-
-    Vector2() { x = 0; y = 0; }
-    Vector2(float a) { x = cos(a); y = sin(a); }
-    Vector2(float x_, float y_) { x = x_; y = y_; }
-
-    void scale(float s) {
-        x *= s;
-        y *= s;
-    }
-    float radius() {
-        return sqrt(x*x + y*y);
-    }
-    void normalize() {
-        this->scale(1/radius());
-    }
-
-    void rotateByAngle(float a) {
-        float newX = x*cos(a) - y*sin(a);
-        y = x*sin(a) + y*cos(a);
-        x = newX;
-    }
-    void rotateByUnitVector(Vector2* o) {
-        float newX = x*o->x - y*o->y; // good lord there's matrickse
-        y = x*o->y + y*o->x;
-        x = newX;
-    }
-    float dotProduct(Vector2* o) {
-        return (x * o->x) + (y * o->y);
-    }
-    float crossProduct(Vector2* o) {
-        return (x * o->y) - (y * o->x);
-    }
-    float angleDifference(Vector2* o) {
-        float angle = asin(crossProduct(o));
-        float dotP = dotProduct(o);
-        if (dotP < 0) {
-            if (angle > 0) {
-                angle = M_PI - angle;
-            } else {
-                angle = -M_PI + angle;
-            }
-        }
-        return angle;
-    }
-}; */
 
 
 // Static variable definitions
@@ -97,7 +48,7 @@ void Motors::calculateMotorPower(float* leftPower, float* rightPower) {
     }
 }
 
-void Motors::doMovementWithSlowdown(float leftPower, float rightPower, int distanceInCounts) {
+bool Motors::doMovementWithSlowdown(float leftPower, float rightPower, int distanceInCounts) {
     // floating point inaccuracies dictate that this will wait a few seconds less than 
     //   expected if the proteus is left on for 194 days
     // but if you look at the libraries the integer part of the time in seconds is 
@@ -110,6 +61,9 @@ void Motors::doMovementWithSlowdown(float leftPower, float rightPower, int dista
     // The motors will slow down when there are this many counts until the end
     float slowdownDistance = maxPower * SLOWDOWN_THRESHOLD_COEFFICIENT;
 
+    // TODO: keep track of position and rotation
+    int leftCountsPrev = 0, rightCountsPrev = 0;
+
     lEncoder.ResetCounts();
     rEncoder.ResetCounts();
     lMotor.SetPercent(leftPower);
@@ -121,7 +75,21 @@ void Motors::doMovementWithSlowdown(float leftPower, float rightPower, int dista
         // Wait until the appropriate distance
         while ((lEncoder.Counts() + rEncoder.Counts()) / 2 < distanceInCounts - (int)slowdownDistance) {
             Debugger::abortCheck();
-            if (TimeNow() > timeoutTime || TimeNow() > secondTimeoutTime) break;
+            Debugger::sleep(0.005f);
+            int lDiff = lEncoder.Counts() - leftCountsPrev;
+            int rDiff = rEncoder.Counts() - rightCountsPrev;
+            leftCountsPrev = lEncoder.Counts();
+            rightCountsPrev = rEncoder.Counts();
+            float angleDiff = (rDiff - lDiff) / 2.f / ENCODER_COUNTS_PER_DEGREE;
+            float distDiff = (rDiff + lDiff) / 2.f / ENCODER_COUNTS_PER_INCH;
+            tempX += cos(tempH * DEG_TO_RAD + angleDiff / 2) * distDiff;
+            tempY += sin(tempH * DEG_TO_RAD + angleDiff / 2) * distDiff;
+            tempH = limitAngle(tempH + angleDiff * RAD_TO_DEG);
+            
+            if (TimeNow() > timeoutTime || TimeNow() > secondTimeoutTime) {
+                Motors::stop();
+                return true;
+            }
         }
 
         // Robot should now slow down
@@ -139,14 +107,28 @@ void Motors::doMovementWithSlowdown(float leftPower, float rightPower, int dista
     // Done with slowdown stages, wait for final stage to reach the end
     while ((lEncoder.Counts() + rEncoder.Counts()) / 2 < distanceInCounts) {
         Debugger::abortCheck();
-        if (TimeNow() > timeoutTime) break;
+        Debugger::sleep(0.005f);
+        int lDiff = lEncoder.Counts() - leftCountsPrev;
+        int rDiff = rEncoder.Counts() - rightCountsPrev;
+        leftCountsPrev = lEncoder.Counts();
+        rightCountsPrev = rEncoder.Counts();
+        float angleDiff = (rDiff - lDiff) / 2.f / ENCODER_COUNTS_PER_DEGREE;
+        float distDiff = (rDiff + lDiff) / 2.f / ENCODER_COUNTS_PER_INCH;
+        tempX += cos(tempH * DEG_TO_RAD + angleDiff / 2) * distDiff;
+        tempY += sin(tempH * DEG_TO_RAD + angleDiff / 2) * distDiff;
+        tempH = limitAngle(tempH + angleDiff * RAD_TO_DEG);
+        if (TimeNow() > timeoutTime) {
+            Motors::stop();
+            return true;
+        }
     }
 
     // We have arrived, stop motors
     Motors::stop();
+    return false;
 }
 
-void Motors::turn(float degrees) {
+bool Motors::turn(float degrees) {
     Debugger::sleep(delay);
 
     float leftPower, rightPower;
@@ -161,10 +143,10 @@ void Motors::turn(float degrees) {
 
     int totalDistanceInCounts = (int) (abs(degrees) * ENCODER_COUNTS_PER_DEGREE);
 
-    doMovementWithSlowdown(leftPower, rightPower, totalDistanceInCounts);
+    return doMovementWithSlowdown(leftPower, rightPower, totalDistanceInCounts);
 }
 
-void Motors::drive(float distance) {
+bool Motors::drive(float distance) {
     Debugger::sleep(delay);
 
     float leftPower, rightPower;
@@ -178,7 +160,7 @@ void Motors::drive(float distance) {
 
     int totalDistanceInCounts = (int) (abs(distance) * ENCODER_COUNTS_PER_INCH);
 
-    doMovementWithSlowdown(leftPower, rightPower, totalDistanceInCounts);
+    return doMovementWithSlowdown(leftPower, rightPower, totalDistanceInCounts);
 }
 
 void Motors::pulse_forward(int percent, float seconds){
@@ -413,80 +395,182 @@ float limitAngle(float a) {
 // turns the robot to the specified heading using RPS
 void Motors::lineUpToAngle(float targetH) {
 
-    Debugger::printLine(1, "turning to h = %.1f", targetH);
+    //Debugger::printLine(1, "turning to h = %.1f", targetH);
 
-    float currentH = RPS.Heading();
+    float currentH = getH();
     while (abs(limitAngle(targetH - currentH)) > errorThresholdDegrees) {
 
-        Debugger::printLine(2, "targ: %.1f curr: %.1f", targetH, currentH);
-        Debugger::printLine(3, "error: %.1f", limitAngle(targetH - currentH));
+        //Debugger::printLine(2, "targ: %.1f curr: %.1f", targetH, currentH);
+        //Debugger::printLine(3, "error: %.1f", limitAngle(targetH - currentH));
 
         Motors::turn(-limitAngle(targetH - currentH) + ((targetH > currentH) ? -3 : 3));
         Debugger::sleep(rpsDelay);
-        currentH = RPS.Heading();
+        currentH = getH();
     }
 
-    Debugger::printLine(2, "targ: %.1f curr: %.1f", targetH, currentH);
-    Debugger::printLine(3, "error: %.1f", limitAngle(targetH - currentH));
-    Debugger::printLine(4, "Finished");
+    //Debugger::printLine(2, "targ: %.1f curr: %.1f", targetH, currentH);
+    //Debugger::printLine(3, "error: %.1f", limitAngle(targetH - currentH));
+    //Debugger::printLine(4, "Finished");
 }
 
 // moves the robot along its current facing axis until it reaches the specified x
 //   coordinate. works best if lined up with the x axis
 void Motors::lineUpToXCoordinate(float x) {
 
-    Debugger::printLine(1, "going to x = %.1f", x);
+    //Debugger::printLine(1, "going to x = %.1f", x);
 
     // account for how far forward the QR code is on the robot
-    float targetX = x + QRCODE_OFFSET * cos(RPS.Heading() * DEG_TO_RAD);
+    float targetX = x + QRCODE_OFFSET * cos(getH() * DEG_TO_RAD);
 
     // repeat until close to the target position
-    float currentX = RPS.X();
+    float currentX = getX();
     while (abs(targetX - currentX) > errorThresholdInches) {
 
-        Debugger::printLine(2, "targ: %.1f curr: %.1f", targetX, currentX);
-        Debugger::printLine(3, "error: %.1f", abs(targetX - currentX));
+        //Debugger::printLine(2, "targ: %.1f curr: %.1f", targetX, currentX);
+        //Debugger::printLine(3, "error: %.1f", abs(targetX - currentX));
 
         // drive towards the target position (accounting for the robot's facing direction)
-        Motors::drive((targetX - currentX) / cos(RPS.Heading() * DEG_TO_RAD));
+        Motors::drive((targetX - currentX) / cos(getH() * DEG_TO_RAD));
 
         // update position variable
         Debugger::sleep(rpsDelay);
-        currentX = RPS.X();
-        targetX = x + QRCODE_OFFSET * cos(RPS.Heading() * DEG_TO_RAD);
+        currentX = getX();
+        targetX = x + QRCODE_OFFSET * cos(getH() * DEG_TO_RAD);
     }
 
-    Debugger::printLine(2, "targ: %.1f curr: %.1f", targetX, currentX);
-    Debugger::printLine(3, "error: %.1f", abs(targetX - currentX));
-    Debugger::printLine(4, "Finished");
+    //Debugger::printLine(2, "targ: %.1f curr: %.1f", targetX, currentX);
+    //Debugger::printLine(3, "error: %.1f", abs(targetX - currentX));
+    //Debugger::printLine(4, "Finished");
 }
 
 // moves the robot along its current facing axis until it reaches the specified y
 //   coordinate. works best if lined up with the y axis
 void Motors::lineUpToYCoordinate(float y) {
 
-    Debugger::printLine(1, "going to y = %.1f", y);
+    //Debugger::printLine(1, "going to y = %.1f", y);
 
     // account for how far forward the QR code is on the robot
-    float targetY = y + QRCODE_OFFSET * sin(RPS.Heading() * DEG_TO_RAD);
+    float targetY = y + QRCODE_OFFSET * sin(getH() * DEG_TO_RAD);
 
     // repeat until close to the target position
-    float currentY = RPS.Y();
+    float currentY = getY();
     while (abs(targetY - currentY) > errorThresholdInches) {
 
-        Debugger::printLine(2, "targ: %.1f curr: %.1f", targetY, currentY);
-        Debugger::printLine(3, "error: %.1f", abs(targetY - currentY));
+        //Debugger::printLine(2, "targ: %.1f curr: %.1f", targetY, currentY);
+        //Debugger::printLine(3, "error: %.1f", abs(targetY - currentY));
 
         // drive towards the target position (accounting for the robot's facing direction)
-        Motors::drive((targetY - currentY) / sin(RPS.Heading() * DEG_TO_RAD));
+        Motors::drive((targetY - currentY) / sin(getH() * DEG_TO_RAD));
 
         // update position variable
         Debugger::sleep(rpsDelay);
-        currentY = RPS.Y();
-        targetY = y + QRCODE_OFFSET * sin(RPS.Heading() * DEG_TO_RAD);
+        currentY = getY();
+        targetY = y + QRCODE_OFFSET * sin(getH() * DEG_TO_RAD);
     }
 
-    Debugger::printLine(2, "targ: %.1f curr: %.1f", targetY, currentY);
-    Debugger::printLine(3, "error: %.1f", abs(targetY - currentY));
-    Debugger::printLine(4, "Finished");
+    //Debugger::printLine(2, "targ: %.1f curr: %.1f", targetY, currentY);
+    //Debugger::printLine(3, "error: %.1f", abs(targetY - currentY));
+    //Debugger::printLine(4, "Finished");
+}
+
+void Motors::lineUpToXCoordinateMaintainHeading(float x, float targetH) {
+    float currentX;
+    float targetX;
+    float currentH = getH();
+    for (int i = 0; i < 30; i++) {
+        currentH = getH();
+
+        if (abs(limitAngle(targetH - currentH)) > errorThresholdDegrees) {
+            float correctionAngle = -limitAngle(targetH - currentH) + ((targetH > currentH) ? -3 : 3);
+            // try to turn that amount, and if it timed out instead
+            if (Motors::turn(correctionAngle)) {
+                // flail wildly in the vain attempt to break free from your chains
+                Motors::drive((Random.RandInt() % 2) ? -4 : 4);
+            }
+            Debugger::sleep(rpsDelay);
+            continue;
+        }
+
+        currentX = getX();
+        targetX = x + QRCODE_OFFSET * cos(getH() * DEG_TO_RAD);
+
+        if (abs(targetX - currentX) > errorThresholdInches) {
+            float correctionDistance = (targetX - currentX) / cos(getH() * DEG_TO_RAD);
+            // try to turn that amount, and if it timed out instead
+            if (Motors::drive(correctionDistance)) {
+                // drive in the opposite direction
+                Motors::drive(correctionDistance > 0 ? -4 : 4);
+            }
+            Debugger::sleep(rpsDelay);
+            continue;
+        }
+        
+        break;
+    }
+}
+
+void Motors::lineUpToYCoordinateMaintainHeading(float y, float targetH) {
+    float currentY;
+    float targetY;
+    float currentH = getH();
+    for (int i = 0; i < 30; i++) {
+        currentH = getH();
+
+        if (abs(limitAngle(targetH - currentH)) > errorThresholdDegrees) {
+            float correctionAngle = -limitAngle(targetH - currentH) + ((targetH > currentH) ? -3 : 3);
+            // try to turn that amount, and if it timed out instead
+            if (Motors::turn(correctionAngle)) {
+                // flail wildly in the vain attempt to break free from your chains
+                Motors::drive((Random.RandInt() % 2) ? -4 : 4);
+            }
+            Debugger::sleep(rpsDelay);
+            continue;
+        }
+
+        currentY = getX();
+        targetY = y + QRCODE_OFFSET * cos(getH() * DEG_TO_RAD);
+
+        if (abs(targetY - currentY) > errorThresholdInches) {
+            float correctionDistance = (targetY - currentY) / cos(getH() * DEG_TO_RAD);
+            // try to turn that amount, and if it timed out instead
+            if (Motors::drive(correctionDistance)) {
+                // drive in the opposite direction
+                Motors::drive(correctionDistance > 0 ? -4 : 4);
+            }
+            Debugger::sleep(rpsDelay);
+            continue;
+        }
+        
+        break;
+    }
+}
+
+float Motors::getX() {
+    float rpsX = RPS.X();
+    if (rpsX >= 0 && rpsX < 36) {
+        tempX = rpsX;
+        return rpsX;
+    } else {
+        return tempX;
+    }
+}
+
+float Motors::getY() {
+    float rpsY = RPS.Y();
+    if (rpsY >= 0 && rpsY < 72) {
+        tempY = rpsY;
+        return rpsY;
+    } else {
+        return tempY;
+    }
+}
+
+float Motors::getH() {
+    float rpsH = RPS.Heading();
+    if (rpsH >= 0) {
+        tempH = rpsH;
+        return rpsH;
+    } else {
+        return tempH;
+    }
 }

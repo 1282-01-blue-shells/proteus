@@ -85,12 +85,12 @@ public:
     // Functions //
 
     // Turns the specified angle in terms of heading. A positive angle will turn to the
-    //   right, and a negative angle will turn to the left.
-    static void turn(float degrees);
+    //   right, and a negative angle will turn to the left. Returns true if timed out.
+    static bool turn(float degrees);
 
     // Drives the specified distance in inches. If distance is negative, it will drive
-    //   backwards instead.
-    static void drive(float distance);
+    //   backwards instead. Returns true if timed out.
+    static bool drive(float distance);
 
     //allows the bot to pulse forward at a given time/percent
     static void pulse_forward(int percent, float seconds);
@@ -134,9 +134,17 @@ public:
     static void lineUpToXCoordinate(float x);
     static void lineUpToYCoordinate(float y);
 
+    static void Motors::lineUpToXCoordinateMaintainHeading(float x, float h);
+    static void Motors::lineUpToYCoordinateMaintainHeading(float y, float h);
+
 private:
+    static float tempX, tempY, tempH;
+
+    static float getX();
+    static float getY();
+    static float getH();
     static void calculateMotorPower(float* leftPower, float* rightPower);
-    static void doMovementWithSlowdown(float leftPower, float rightPower, int distanceInCounts);
+    static bool doMovementWithSlowdown(float leftPower, float rightPower, int distanceInCounts);
 };
 
 #endif
