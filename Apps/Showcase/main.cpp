@@ -386,15 +386,17 @@ void flipLever() {
 
     //BACK UP CODE
     /*
+    Motors::turn(-90); //code for robot to turn to face so back is to wall
     Motors::drive(-8); //robot will back into wall
     Debugger::printNextLine("Going to lever %i", leverNumber);
     Motors::drive(initiallever + overshoot - 3.5f * leverNumber); //robot goes to correct lever ideally
 
     // turn partway to the lever
-    Motors::turn(48);
+    Motors::turn(45);
     Motors::drive(-1.41*overshoot);
     Motors::turn(45); // rest of the way
     Motors::drive(overshoot + distToLever);
+    */
 
     // Hit it down
     mouthServo.SetDegree(55);
@@ -414,7 +416,7 @@ void flipLever() {
 }
 
 void hitStopButton() {
-    Debugger::printNextLine("SO LONG YOU DUSTY ");
+    Debugger::printNextLine("Goodbye World");
 
     // leave rps dead zone
     Motors::drive(6);
