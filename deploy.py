@@ -2,12 +2,13 @@
 
 import sys
 
+if sys.version_info[0] != 3:
+    sys.stderr.write("this script requires a Python 3 interpreter")
+    exit(1)
+
 def fail(msg: str):
     sys.stderr.write(f"error: {msg}\n")
     exit(1)
-
-if sys.version_info[0] != 3:
-    fail("this script requires a Python 3 interpreter")
 
 from pathlib import Path
 import platform
