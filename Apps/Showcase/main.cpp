@@ -16,8 +16,8 @@ static float leverCorrection = 0;
 static float leverAngles[3] = { -30.f, -10.f, 20.f };
 static bool doPassportLeverCorrection = true;
 static float initiallever = 10;
-static float overshoot = 2;
-static float distancetolever = -2.5;
+static float overshoot = 1.5;
+static float distancetolever = 2.5;
 static float otherLeverCorrection = -2;
 static bool doWillThing = false;
 
@@ -369,16 +369,15 @@ void flipLever() {
 
     //BACK UP CODE
     /*
-    Motors::turn(-90); //code for robot to turn to face so back is to wall
     Motors::drive(-8); //robot will back into wall
     Debugger::printNextLine("Going to lever %i", leverNumber);
     Motors::drive(initiallever + overshoot - 3.5f * leverNumber); //robot goes to correct lever ideally
 
     // turn partway to the lever
-    Motors::turn(45);
+    Motors::turn(48);
     Motors::drive(-1.41*overshoot);
     Motors::turn(45); // rest of the way
-    Motors::drive(overshoot + distToLever);*/
+    Motors::drive(overshoot + distToLever);
 
     // Hit it down
     mouthServo.SetDegree(55);
