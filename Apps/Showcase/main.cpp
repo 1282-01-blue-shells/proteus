@@ -402,8 +402,7 @@ void flipLever() {
 }
 
 void hitStopButton() {
-    Debugger::printNextLine("Goodbye Cruel World");
-    Debugger::printNextLine("HAHAH!!!");
+    Debugger::printNextLine("SO LONG YOU DUSTY BITCH!");
 
     // leave rps dead zone
     Motors::drive(6);
@@ -415,7 +414,7 @@ void hitStopButton() {
     // get lined up and all
     Motors::lineUpToXCoordinate(24);
     Motors::lineUpToAngle(90);
-    Motors::lineUpToYCoordinate(12);
+    Motors::lineUpToYCoordinate(14);
 
     // Hit da button
     Motors::turn(-45);
