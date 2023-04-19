@@ -65,7 +65,7 @@ bool Motors::doMovementWithSlowdown(float leftPower, float rightPower, int dista
     //   actually a uint16. So if you leave your proteus on for 18 hours, 12 minutes,
     //   and 15 seconds, and then start a motor movement, it will overflow and the
     //   timeout will never happen
-    float timeoutTime = (float) TimeNow() + movementTimeoutPerInch * distanceInCounts / ENCODER_COUNTS_PER_INCH;
+    float timeoutTime = (float) TimeNow() + 1 + movementTimeoutPerInch * distanceInCounts / ENCODER_COUNTS_PER_INCH;
     float secondTimeoutTime = TimeNow() + 10;
 
     // The motors will slow down when there are this many counts until the end
@@ -85,7 +85,7 @@ bool Motors::doMovementWithSlowdown(float leftPower, float rightPower, int dista
         // Wait until the appropriate distance
         while ((lEncoder.Counts() + rEncoder.Counts()) / 2 < distanceInCounts - (int)slowdownDistance) {
             Debugger::abortCheck();
-            Debugger::sleep(0.005f);
+            Debugger::sleep(0.001f);
             int lDiff = lEncoder.Counts() - leftCountsPrev;
             int rDiff = rEncoder.Counts() - rightCountsPrev;
             leftCountsPrev = lEncoder.Counts();
@@ -117,7 +117,7 @@ bool Motors::doMovementWithSlowdown(float leftPower, float rightPower, int dista
     // Done with slowdown stages, wait for final stage to reach the end
     while ((lEncoder.Counts() + rEncoder.Counts()) / 2 < distanceInCounts) {
         Debugger::abortCheck();
-        Debugger::sleep(0.005f);
+        Debugger::sleep(0.001f);
         int lDiff = lEncoder.Counts() - leftCountsPrev;
         int rDiff = rEncoder.Counts() - rightCountsPrev;
         leftCountsPrev = lEncoder.Counts();
@@ -127,7 +127,7 @@ bool Motors::doMovementWithSlowdown(float leftPower, float rightPower, int dista
         tempX += cos(tempH * DEG_TO_RAD + angleDiff / 2) * distDiff;
         tempY += sin(tempH * DEG_TO_RAD + angleDiff / 2) * distDiff;
         tempH = limitAngle(tempH + angleDiff * RAD_TO_DEG);
-        if (TimeNow() > timeoutTime) {
+        if (TimeNow() > timeoutTime || TimeNow() > secondTimeoutTime) {
             Motors::stop();
             return true;
         }
@@ -408,7 +408,7 @@ void Motors::lineUpToAngle(float targetH) {
         //Debugger::printLine(2, "targ: %.1f curr: %.1f", targetH, currentH);
         //Debugger::printLine(3, "error: %.1f", limitAngle(targetH - currentH));
 
-        Motors::turn(-limitAngle(targetH - currentH) + ((targetH > currentH) ? -3 : 3));
+        Motors::turn(-limitAngle(targetH - currentH) /* + ((targetH > currentH) ? -3 : 3) */);
         Debugger::sleep(rpsDelay);
         currentH = getH();
     }
@@ -479,6 +479,8 @@ void Motors::lineUpToYCoordinate(float y) {
 }
 
 void Motors::lineUpToXCoordinateMaintainHeading(float x, float targetH) {
+    Debugger::printLine(1, "going to y = %.1f", x);
+
     float currentX;
     float targetX;
     float currentH = getH();
@@ -486,11 +488,11 @@ void Motors::lineUpToXCoordinateMaintainHeading(float x, float targetH) {
         currentH = getH();
 
         if (abs(limitAngle(targetH - currentH)) > errorThresholdDegrees) {
-            float correctionAngle = -limitAngle(targetH - currentH) + ((targetH > currentH) ? -3 : 3);
+            float correctionAngle = -limitAngle(targetH - currentH) /* + ((targetH > currentH) ? -3 : 3) */;
             // try to turn that amount, and if it timed out instead
             if (Motors::turn(correctionAngle)) {
                 // flail wildly in the vain attempt to break free from your chains
-                Motors::drive((Random.RandInt() % 2) ? -4 : 4);
+                Motors::drive((Random.RandInt() % 2) ? -2 : 2);
             }
             Debugger::sleep(rpsDelay);
             continue;
@@ -498,13 +500,14 @@ void Motors::lineUpToXCoordinateMaintainHeading(float x, float targetH) {
 
         currentX = getX();
         targetX = x + QRCODE_OFFSET * cos(getH() * DEG_TO_RAD);
+        Debugger::printLine(2, "targ: %.1f curr: %.1f", targetX, currentX);
 
         if (abs(targetX - currentX) > errorThresholdInches) {
             float correctionDistance = (targetX - currentX) / cos(getH() * DEG_TO_RAD);
             // try to turn that amount, and if it timed out instead
             if (Motors::drive(correctionDistance)) {
                 // drive in the opposite direction
-                Motors::drive(correctionDistance > 0 ? -4 : 4);
+                Motors::drive(correctionDistance > 0 ? -2 : 2);
             }
             Debugger::sleep(rpsDelay);
             continue;
@@ -515,6 +518,8 @@ void Motors::lineUpToXCoordinateMaintainHeading(float x, float targetH) {
 }
 
 void Motors::lineUpToYCoordinateMaintainHeading(float y, float targetH) {
+    Debugger::printLine(1, "going to y = %.1f", y);
+
     float currentY;
     float targetY;
     float currentH = getH();
@@ -522,25 +527,26 @@ void Motors::lineUpToYCoordinateMaintainHeading(float y, float targetH) {
         currentH = getH();
 
         if (abs(limitAngle(targetH - currentH)) > errorThresholdDegrees) {
-            float correctionAngle = -limitAngle(targetH - currentH) + ((targetH > currentH) ? -3 : 3);
+            float correctionAngle = -limitAngle(targetH - currentH) /* + ((targetH > currentH) ? -3 : 3) */;
             // try to turn that amount, and if it timed out instead
             if (Motors::turn(correctionAngle)) {
                 // flail wildly in the vain attempt to break free from your chains
-                Motors::drive((Random.RandInt() % 2) ? -4 : 4);
+                Motors::drive((Random.RandInt() % 2) ? -2 : 2);
             }
             Debugger::sleep(rpsDelay);
             continue;
         }
 
-        currentY = getX();
-        targetY = y + QRCODE_OFFSET * cos(getH() * DEG_TO_RAD);
+        currentY = getY();
+        targetY = y + QRCODE_OFFSET * sin(getH() * DEG_TO_RAD);
+        Debugger::printLine(2, "targ: %.1f curr: %.1f", targetY, currentY);
 
         if (abs(targetY - currentY) > errorThresholdInches) {
-            float correctionDistance = (targetY - currentY) / cos(getH() * DEG_TO_RAD);
+            float correctionDistance = (targetY - currentY) / sin(getH() * DEG_TO_RAD);
             // try to turn that amount, and if it timed out instead
             if (Motors::drive(correctionDistance)) {
                 // drive in the opposite direction
-                Motors::drive(correctionDistance > 0 ? -4 : 4);
+                Motors::drive(correctionDistance > 0 ? -2 : 2);
             }
             Debugger::sleep(rpsDelay);
             continue;

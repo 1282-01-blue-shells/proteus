@@ -36,6 +36,7 @@ void goBackDownTheRamp();
 void goToLevers();
 void flipLever();
 void hitStopButton();
+void testramp();
 
 int getLightColor();
 
@@ -54,12 +55,14 @@ int main() {
     ProteOS::registerVariable("otherLeverCorrection", &otherLeverCorrection);
 
     ProteOS::registerFunction("runCourse()", &runCourse);
+    ProteOS::registerFunction("TESTINGRAMPS()",&testramp);
 
     ProteOS::run();
 }
 
 void runCourse() {
     waitForLight();
+    testramp();
     goToLevers();
     flipLever();
     goToLuggageDropoff();
@@ -72,6 +75,31 @@ void runCourse() {
     hitStopButton();
 }
 
+
+void testramp(){
+    //function to test which ways the robot can go up the ramp
+    //function ideally testing the longer ramp on Course A
+    Motors::lineUpToXCoordinateMaintainHeading(30,90);
+    Motors::drive(10);
+
+    Motors::drive(-12);
+    Motors::lineUpToXCoordinateMaintainHeading(30,270);
+    Motors::drive(-12);
+    Motors::drive(12);
+
+    //testing the steeper ramp
+    Motors::lineUpToXCoordinateMaintainHeading(.3,180);
+    Motors::lineUpToAngle(90);
+    Motors::drive(8);
+
+    //now should be up the steeper ramp
+    Motors::drive(-8);
+    Motors::lineUpToAngle(270); //drives up backwards
+    Motors::drive(-8);
+    Motors::drive(8);
+
+    Motors::turn(360); //victory loop
+}
 void precise() {
     Motors::errorThresholdDegrees = 0.5f;
     Motors::errorThresholdInches = 0.1f;

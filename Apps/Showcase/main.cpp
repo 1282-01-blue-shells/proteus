@@ -12,13 +12,13 @@ AnalogInputPin lightSensor(FEHIO::P0_7);
 FEHServo r2d2Servo(FEHServo::Servo1);
 FEHServo mouthServo(FEHServo::Servo0);
 
-static float leverCorrection = 0;
+static float leverCorrection = 1;
 static float leverAngles[3] = { -30.f, -10.f, 20.f };
 static bool doPassportLeverCorrection = true;
 static float initiallever = 10;
 static float overshoot = 2;
 static float distancetolever = -2.5;
-static float otherLeverCorrection = -2;
+static float otherLeverCorrection = -3;
 static bool doWillThing = false;
 
 void runCourse();
@@ -172,12 +172,12 @@ void goToLight() {
 
     // back up to be in line with the light
     //Motors::lineUpToXCoordinate(11.5f);
-    Motors::lineUpToXCoordinateMaintainHeading(11.5f, 315);
+    Motors::lineUpToXCoordinateMaintainHeading(11, 315);
 
     // go to the light
     //Motors::lineUpToAngle(270);
     //Motors::lineUpToYCoordinate(64);
-    Motors::lineUpToYCoordinateMaintainHeading(64, 270);
+    Motors::lineUpToYCoordinateMaintainHeading(62, 270);
 }
 
 int getLightColor() {
@@ -188,7 +188,7 @@ int getLightColor() {
     Motors::lMotor.SetPercent(20);
     Motors::rMotor.SetPercent(20);
     while (TimeNow() < startTime + 1) {
-        if (lightSensor.Value() < 0.3) {
+        if (lightSensor.Value() < 0.4) {
             color = 1;
             break;
         }
@@ -218,7 +218,7 @@ void pressKioskButton() {
 
     // go to the x coordinate of the intended button
     Motors::turn(90);
-    Motors::lineUpToXCoordinate(19 + 5*buttonNumber);
+    Motors::lineUpToXCoordinate(19 + 4*buttonNumber);
     Motors::lineUpToAngle(90);
 
     // Move mouth down so it can hit the button
@@ -236,7 +236,7 @@ void goToPassportStation() {
     // Get lined up vertically
     Motors::turn(-180);
     //Motors::lineUpToYCoordinate(60);
-    Motors::lineUpToYCoordinateMaintainHeading(60, 270);
+    Motors::lineUpToYCoordinateMaintainHeading(59.5f, 270);
 
     // Go to the station
     //Motors::lineUpToAngle(180);
@@ -269,9 +269,9 @@ void spinPassportLever() {
     Debugger::printNextLine("ITS TIME TO SPIN DA LEVER");
 
     if (doPassportLeverCorrection) {
-        Motors::turn((RPS.Y() - 60) / 6 * 180 / 3.14);
+        Motors::lineUpToAngle(180 - (RPS.Y() - 59.5f) / 6 * 180 / 3.14f);
     }
-    Motors::drive(-2);
+    Motors::drive(-4);
     
     // Rotate servo to under lever
     r2d2Servo.SetDegree(135);
@@ -335,7 +335,12 @@ void goBackDownTheRamp() {
 
     //precise();
     //Motors::lineUpToYCoordinate(20);
-    Motors::drive(32);
+    //Motors::drive(32);
+
+    Motors::start();
+    Debugger::sleep(4);
+    Motors::stop();
+
     Motors::drive(otherLeverCorrection);
     //Motors::lineUpToAngle(0);
     Motors::turn(-90);
@@ -376,10 +381,10 @@ void flipLever() {
         Motors::turn(angle);
         Motors::drive(4.f/std::tan(std::abs(angle)) + leverCorrection);
     } else {
-        Motors::lineUpToXCoordinate(12 - 3*leverNumber + 2);
+        Motors::lineUpToXCoordinate(12 - 2.5f*leverNumber + 2);
         Motors::turn(45);
         Motors::drive(-2.82);
-        Motors::turn(45);
+        Motors::turn(55);
         
         Motors::drive(leverCorrection);
     }
@@ -399,17 +404,17 @@ void flipLever() {
     */
 
     // Hit it down
-    mouthServo.SetDegree(55);
+    mouthServo.SetDegree(45);
     Motors::drive(2);
-    mouthServo.SetDegree(90);
+    mouthServo.SetDegree(80);
     Motors::drive(-2);
 
     Debugger::sleep(5);
     
     // Hit it up again
-    mouthServo.SetDegree(125);
+    mouthServo.SetDegree(115);
     Motors::drive(2);
-    mouthServo.SetDegree(90);
+    mouthServo.SetDegree(80);
     Motors::drive(-2);
 
     Motors::turn(-90);
@@ -419,7 +424,7 @@ void hitStopButton() {
     Debugger::printNextLine("Goodbye World");
 
     // leave rps dead zone
-    Motors::drive(6);
+    Motors::drive(8);
     Motors::turn(45);
     Motors::drive(6);
 
@@ -434,5 +439,5 @@ void hitStopButton() {
 
     // Hit da button
     Motors::turn(-45);
-    Motors::drive(-6);
+    Motors::drive(-12);
 }
