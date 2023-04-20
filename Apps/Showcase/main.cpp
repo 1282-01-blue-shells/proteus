@@ -12,8 +12,8 @@ AnalogInputPin lightSensor(FEHIO::P0_7);
 FEHServo r2d2Servo(FEHServo::Servo1);
 FEHServo mouthServo(FEHServo::Servo0);
 
-static float leverCorrection = 1;
-static float leverAngles[3] = { -30.f, -10.f, 20.f };
+static float leverCorrection = 1.5;
+//static float leverAngles[3] = { -30.f, -10.f, 20.f };
 static bool doPassportLeverCorrection = true;
 static float initiallever = 10;
 static float overshoot = 2;
@@ -49,9 +49,9 @@ int main() {
     
     ProteOS::registerVariable("motorPower", &Motors::maxPower);
     ProteOS::registerVariable("leverCorrection", &leverCorrection);
-    ProteOS::registerVariable("leverAngle0", &leverAngles[0]);
+    /* ProteOS::registerVariable("leverAngle0", &leverAngles[0]);
     ProteOS::registerVariable("leverAngle1", &leverAngles[1]);
-    ProteOS::registerVariable("leverAngle2", &leverAngles[2]);
+    ProteOS::registerVariable("leverAngle2", &leverAngles[2]); */
     /* ProteOS::registerVariable("leverDist0", &leverDists[0]);
     ProteOS::registerVariable("leverDist1", &leverDists[1]);
     ProteOS::registerVariable("leverDist2", &leverDists[2]); */
@@ -172,12 +172,12 @@ void goToLight() {
 
     // back up to be in line with the light
     //Motors::lineUpToXCoordinate(11.5f);
-    Motors::lineUpToXCoordinateMaintainHeading(11, 315);
+    Motors::lineUpToXCoordinateMaintainHeading(11.5f, 315);
 
     // go to the light
     //Motors::lineUpToAngle(270);
     //Motors::lineUpToYCoordinate(64);
-    Motors::lineUpToYCoordinateMaintainHeading(62, 270);
+    Motors::lineUpToYCoordinateMaintainHeading(63, 270);
 }
 
 int getLightColor() {
@@ -236,7 +236,7 @@ void goToPassportStation() {
     // Get lined up vertically
     Motors::turn(-180);
     //Motors::lineUpToYCoordinate(60);
-    Motors::lineUpToYCoordinateMaintainHeading(59.5f, 270);
+    Motors::lineUpToYCoordinateMaintainHeading(60.5, 270);
 
     // Go to the station
     //Motors::lineUpToAngle(180);
@@ -253,14 +253,14 @@ void rotateR2D2ServoSlow(float start, float end) {
         while (degree <= end) {
             r2d2Servo.SetDegree(degree);
             degree++;
-            Debugger::sleep(0.01f);
+            Debugger::sleep(0.003f);
         }
     } else {
         // going down
         while (degree >= end) {
             r2d2Servo.SetDegree(degree);
             degree--;
-            Debugger::sleep(0.01f);
+            Debugger::sleep(0.003f);
         }
     }
 }
@@ -269,9 +269,14 @@ void spinPassportLever() {
     Debugger::printNextLine("ITS TIME TO SPIN DA LEVER");
 
     if (doPassportLeverCorrection) {
-        Motors::lineUpToAngle(180 - (RPS.Y() - 59.5f) / 6 * 180 / 3.14f);
+        Motors::lineUpToAngle(180 - (RPS.Y() - 60.25f) / 6 * 180 / 3.14f);
     }
+    r2d2Servo.SetDegree(135);
     Motors::drive(-4);
+    Motors::turn(15);
+    Motors::drive(-1);
+    Motors::turn(-30);
+    Motors::drive(-1);
     
     // Rotate servo to under lever
     r2d2Servo.SetDegree(135);
@@ -284,7 +289,7 @@ void spinPassportLever() {
     Sleep(2);
 
     // Spin servo other way to un-flip lever
-    rotateR2D2ServoSlow(0, 45);
+    rotateR2D2ServoSlow(0, 90);
     // Motors::drive(-1);
     // rotateR2D2ServoSlow(45, 0);
 
@@ -376,18 +381,18 @@ void flipLever() {
     Motors::drive(2.82);
     Motors::turn(45);*/
 
-    if (doWillThing) {
+    /* if (doWillThing) {
         const float angle = leverAngles[leverNumber];
         Motors::turn(angle);
         Motors::drive(4.f/std::tan(std::abs(angle)) + leverCorrection);
-    } else {
-        Motors::lineUpToXCoordinate(12 - 2.5f*leverNumber + 2);
+    } else { */
+        Motors::lineUpToXCoordinate(13 - 3*leverNumber + 2);
         Motors::turn(45);
         Motors::drive(-2.82);
         Motors::turn(55);
         
         Motors::drive(leverCorrection);
-    }
+    // }
 
     //BACK UP CODE
     /*
@@ -429,6 +434,17 @@ void hitStopButton() {
     Motors::drive(6);
 
     fast();
+
+    Motors::lineUpToAngle(315);
+    float xOff = 36 - RPS.X();
+    float yOff = -RPS.Y();
+    float angle = atan(yOff / xOff);
+    Motors::lineUpToAngle(angle * 180 / 3.14);
+    Motors::drive(-12);
+
+    // if that failed:
+    // back up a bit
+    Motors::drive(8);
 
     // get lined up and all
     //Motors::lineUpToXCoordinate(24);
