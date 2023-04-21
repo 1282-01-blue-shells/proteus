@@ -177,7 +177,7 @@ void goToLight() {
     // go to the light
     //Motors::lineUpToAngle(270);
     //Motors::lineUpToYCoordinate(64);
-    Motors::lineUpToYCoordinateMaintainHeading(63, 270);
+    Motors::lineUpToYCoordinateMaintainHeading(64, 270);
 }
 
 int getLightColor() {
@@ -269,13 +269,13 @@ void spinPassportLever() {
     Debugger::printNextLine("ITS TIME TO SPIN DA LEVER");
 
     if (doPassportLeverCorrection) {
-        Motors::lineUpToAngle(180 - (RPS.Y() - 60.25f) / 6 * 180 / 3.14f);
+        Motors::lineUpToAngle(180 - (RPS.Y() - 60) / 6 * 180 / 3.14f);
     }
     r2d2Servo.SetDegree(135);
     Motors::drive(-4);
-    Motors::turn(15);
+    Motors::turn(10);
     Motors::drive(-1);
-    Motors::turn(-30);
+    Motors::turn(-20);
     Motors::drive(-1);
     
     // Rotate servo to under lever
@@ -386,7 +386,7 @@ void flipLever() {
         Motors::turn(angle);
         Motors::drive(4.f/std::tan(std::abs(angle)) + leverCorrection);
     } else { */
-        Motors::lineUpToXCoordinate(13 - 3*leverNumber + 2);
+        Motors::lineUpToXCoordinate(12.5 - 3.5*leverNumber + 2);
         Motors::turn(45);
         Motors::drive(-2.82);
         Motors::turn(55);
@@ -440,11 +440,11 @@ void hitStopButton() {
     float yOff = -RPS.Y();
     float angle = atan(yOff / xOff);
     Motors::lineUpToAngle(angle * 180 / 3.14);
-    Motors::drive(-12);
+    Motors::drive(12);
 
     // if that failed:
     // back up a bit
-    Motors::drive(8);
+    Motors::drive(-8);
 
     // get lined up and all
     //Motors::lineUpToXCoordinate(24);
