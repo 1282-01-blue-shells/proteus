@@ -107,6 +107,7 @@ endif
 
 LIBS := $(basename $(notdir $(wildcard $(LIBS_DIR)/*.cpp)))
 -include $(foreach app,$(APPS),$(APPS_DIR)/$(app)/libs.mk)
+-include $(foreach lib,$(LIBS),$(LIBS_DIR)/$(lib).mk)
 
 # :: [text]
 # The basenames of all products to be built.
@@ -189,8 +190,11 @@ C_STD := 17
 
 # :: [text]
 # The list of arguments that should be passed to all compiler invocations.
+#
+# -O0 is necessary because *FEHXBee.cpp* has undefined behavior that manifests into an RPS-killing
+# bug when optimizations are enabled.
 COMMON_FLAGS := $(INCFLAGS) \
-                -Os \
+                -O0 \
                 -MMD \
                 -MP \
                 -mcpu=cortex-m4 \
@@ -298,17 +302,24 @@ $(PRODUCT_S19S): %.s19: %.elf
 	echo [ELF] $@
 	$(CXX) -o $@ $^ $(call ldflags,$(basename $@))
 
+define def_lib_recipes
+    __lib_$1_OBJS := $(foreach lib,$($1_LIBS),$(BUILD_DIR)/$(LIBS_DIR)/$(lib).o)
+
+    $(BUILD_DIR)/$(LIBS_DIR)/$1.o: $$(__lib_$1_OBJS)
+endef
+$(foreach lib,$(LIBS),$(eval $(call def_lib_recipes,$(lib))))
+
 # :: text -> [text]
 # Returns a sequence of Makefile statements that define app-specific recipes for the given
 # application.
 define def_app_recipes
-    __$1_OBJS := $(filter-out \
-                   $(foreach app,$(filter-out $1,$(APPS)),$(BUILD_DIR)/$(APPS_DIR)/$(app)/%.o) \
-                   $(foreach lib,$(filter-out $($1_LIBS),$(LIBS)), \
-                     $(BUILD_DIR)/$(LIBS_DIR)/$(lib).o), \
-                   $(OBJS))
+    __app_$1_OBJS := $(filter-out \
+                       $(foreach app,$(filter-out $1,$(APPS)),$(BUILD_DIR)/$(APPS_DIR)/$(app)/%.o) \
+                       $(foreach lib,$(filter-out $($1_LIBS),$(LIBS)), \
+                         $(BUILD_DIR)/$(LIBS_DIR)/$(lib).o), \
+                       $(OBJS))
 
-    $(BUILD_DIR)/$1.elf: $$(__$1_OBJS)
+    $(BUILD_DIR)/$1.elf: $$(__app_$1_OBJS)
 endef
 # Define all app-specific recipes.
 $(foreach app,$(APPS),$(eval $(call def_app_recipes,$(app))))

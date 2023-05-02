@@ -33,7 +33,7 @@ void note(FEHBuzzer::stdnote frequency, float duration )
     note((int) frequency, (int)(duration*1000));
 }
 
-
+// Megalovania time for the win!
 void tune1() {
     note(Buzzer.D4, 1/16.);
     Sleep(1/16.);
@@ -53,8 +53,8 @@ void tune2() {
 
 int main() {
     LCD.Clear();
-    registerIOFunction("tune1()", &tune1);
-    registerIOFunction("tune2()", &tune2);
+    ProteOS::registerFunction("tune1()", &tune1);
+    ProteOS::registerFunction("tune2()", &tune2);
 
-    openIOMenu();
+    ProteOS::run();
 }

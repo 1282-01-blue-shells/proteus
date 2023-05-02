@@ -1,0 +1,1 @@
+Exploration3_LIBS := proteos debugger navigation

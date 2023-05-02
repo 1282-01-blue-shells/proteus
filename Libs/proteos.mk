@@ -1,0 +1,1 @@
+proteos_LIBS := debugger

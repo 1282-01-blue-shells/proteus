@@ -1,1 +1,1 @@
-LightSensorTest_LIBS := proteos
+LightSensorTest_LIBS := proteos debugger navigation

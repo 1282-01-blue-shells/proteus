@@ -1,1 +1,1 @@
-Music_LIBS := proteos
+Music_LIBS := proteos debugger navigation
